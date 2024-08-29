@@ -1,0 +1,72 @@
+@font-face {
+  font-family: "Prompt";
+  src: url("../assets/font/Prompt/Prompt-Regular.ttf") format("truetype");
+}
+
+body {
+  margin: 0;
+  font-family: "Prompt", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-jamjuree {
+  font-family: "Bai Jamjuree", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-roboto-mono {
+  font-family: "Roboto Mono", monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.text-weight-200 {
+  font-weight: 200;
+}
+
+.text-weight-300 {
+  font-weight: 300;
+}
+
+.text-weight-400 {
+  font-weight: 400;
+}
+
+.text-weight-500 {
+  font-weight: 500;
+}
+
+.text-weight-200-italics {
+  font-weight: 200;
+  font-style: italic;
+}
+
+.text-weight-300-italics {
+  font-weight: 300;
+  font-style: italic;
+}
+
+.text-weight-400-italics {
+  font-weight: 400;
+  font-style: italic;
+}
+
+.text-weight-500-italics {
+  font-weight: 500;
+  font-style: italic;
+}
+
+.bg-white-blur {
+  background: rgb(108,73,155);
+background: linear-gradient(45deg, rgb(66, 94, 166) 0%, rgb(26, 50, 97) 50%, rgb(54, 16, 75) 100%);
+}
+
+.bgLogin {
+  background:rgb(187, 214, 230)
+}
+
+.bgAnswer {
+  background:rgb(187, 214, 230)
+}
