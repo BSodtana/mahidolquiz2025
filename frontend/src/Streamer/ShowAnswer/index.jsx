@@ -61,8 +61,8 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
   console.log(question)
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-white-blur gap-5">
-      <div className="grid rounded-lg bg-white text-gray-700 shadow-2xl bg-opacity-100 text-center text-3xl w-11/12 animate__animated animate__fadeInUp p-5">
+    <div className="flex flex-col items-center justify-center h-screen">
+      <div className="grid rounded-lg bg-transparent text-gray-700 shadow-2xl text-center text-3xl w-11/12 animate__animated animate__fadeInUp p-5 glass">
         
         {CURRENT_STATUS === "SHOW_SUMMARY" ? 
         <><p className="animate__animated animate__fadeInUp">คำตอบที่ถูกต้อง<br />
@@ -98,7 +98,7 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
         {answer &&
           answer.map((data, index) => {
             return (
-              <Card key={index} className="col-span-1 bg-white p-2 rounded-2xl shadow-xl animate__animated animate__fadeInDown bg-opacity-90" style={{ animationDelay: `${750 + index * 175}ms`, height: "350px" }}>
+              <Card key={index} className="col-span-1 bg-white bg-opacity-80 p-2 rounded-2xl shadow-xl animate__animated animate__fadeInDown" style={{ animationDelay: `${750 + index * 175}ms`, height: "350px" }}>
                 <Card.Body>
                   <Card.Title className="flex justify-around"><p className="text-2xl text-center text-gray-700">{data.owner_name}</p>
                     {CURRENT_STATUS === "SHOW_SUMMARY" ? filterScore(data.user_id) > 0 ? <BsIcon.BsCheckLg className="animate__animated animate__fadeInUp text-success text-5xl" /> : <BsIcon.BsXLg className="animate__animated animate__fadeInUp text-error text-5xl" /> : null}

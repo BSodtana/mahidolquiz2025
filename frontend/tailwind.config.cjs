@@ -6,6 +6,20 @@ module.exports = {
   },
   plugins: [require("daisyui")],
   daisyui: {
-    themes: false,
+    themes: [
+      {
+        flowergarden: {
+          "primary": "#22c55e",
+          "secondary": "#facc15",
+          "accent": "#3b82f6",
+          "neutral": "#3d4451",
+          "base-100": "#ffffff",
+          "info": "#3abff8",
+          "success": "#36d399",
+          "warning": "#fbbd23",
+          "error": "#f87272",
+        },
+      },
+    ],
   },
 }

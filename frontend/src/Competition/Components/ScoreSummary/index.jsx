@@ -10,7 +10,7 @@ function ScoreSummary(props) {
     }, [])
 
         return (
-         <div className="grid h-screen place-items-center bg-white-blur text-white">
+         <div className="grid h-screen place-items-center text-white">
          {score && score.map((data, index)=>{
             return <>
                 <Card className="grid grid-cols-3 w-5/12 m-2 items-center">

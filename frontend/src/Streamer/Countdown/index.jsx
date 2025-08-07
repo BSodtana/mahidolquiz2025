@@ -40,7 +40,7 @@ function StreamerCountdown({ TIME_LEFT, CURRENT_QUESTION }) {
     );
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-white-blur text-gray-700 p-2 gap-5">
+        <div className="flex flex-col items-center justify-center min-h-screen text-gray-700 p-2 gap-5">
             <div className="grid grid-cols-3 p-5 rounded-lg bg-white shadow-2xl bg-opacity-100 text-center text-3xl w-9/12 animate__animated animate__fadeInUp">
                 <div className="flex justify-around"><BsIcon.BsClock /> {timeFormat(TIME_LEFT)}</div>
                 <div className="flex justify-around"><BsIcon.BsTrophy /> {question && question.score} คะแนน</div>

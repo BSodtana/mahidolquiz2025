@@ -44,7 +44,7 @@ function QuestionSelect({QUESTION_OWNER}) {
   };
 
   return (
-    <div className="h-screen bg-white-blur">
+    <div className="h-screen">
     <div className="px-2 py-5 animate__animated animate__fadeInUp">
         <div className="bg-white bg-opacity-60 shadow-xl w-full rounded-xl"><p className="text-center text-3xl p-4">ขณะนี้ทีม <strong>{owner?.owner_name}</strong> กำลังเลือกคำถาม</p></div>
     </div>
