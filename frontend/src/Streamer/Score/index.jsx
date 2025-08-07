@@ -12,7 +12,7 @@ function StreamerScore() {
     setScore(score);
   };
   return (
-    <div className="grid h-screen place-items-center bg-white-blur">
+    <div className="grid h-screen place-items-center">
       {score &&
         score.map((data, index) => {
           return (

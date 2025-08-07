@@ -83,9 +83,9 @@ function AnswerQuestion({ COUNTDOWN_UNTIL, CURRENT_QUESTION }) {
   if (CURRENT_QUESTION)
     return (
       <>
-        <div className="h-full w-full justify-center items-center bg-white-blur">
+        <div className="h-full w-full justify-center items-center">
           <div className="p-2">
-            <Alert innerClassName="flex justify-between">
+            <Alert innerClassName="flex justify-between" className="bg-transparent shadow-lg">
               <div className="flex gap-5 items-center">
                 <BsIcon.BsPerson /> {user.owner_name}
                 <Button color="info" size="md" startIcon={<BsIcon.BsQuestion />} onClick={() => { setQuestionModal(!questionModal) }}>อ่านคำถาม</Button>
@@ -93,7 +93,7 @@ function AnswerQuestion({ COUNTDOWN_UNTIL, CURRENT_QUESTION }) {
               </div>
               
               <div className="flex gap-2 items-right">
-                <Button className="text-black" style={{backgroundColor:"#86DC3D", borderWidth: '0'}} size="md" onClick={() => { LogData(user.user_id, CURRENT_QUESTION, textAnswer)}}>Save</Button>
+                <Button color="primary" size="md" onClick={() => { LogData(user.user_id, CURRENT_QUESTION, textAnswer)}}>Save</Button>
               </div>
               <p>{timeFormat(COUNTDOWN_UNTIL)}</p>
               <div className="flex gap-2 items-center">
@@ -104,7 +104,7 @@ function AnswerQuestion({ COUNTDOWN_UNTIL, CURRENT_QUESTION }) {
           </div>
           <textarea
             style={{height: "85vh" , marginLeft: "10px", marginRight: "10px", width: "-webkit-fill-available"}}
-            className="shadow-2xl textarea textarea-bordered"
+            className="shadow-2xl textarea textarea-bordered bg-white bg-opacity-80"
             placeholder="คำตอบของคุณ"
             onChange={handleTextChange}
             value={textAnswer}

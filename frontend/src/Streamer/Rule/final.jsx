@@ -5,7 +5,7 @@ function DisplayRuleFinal() {
 
 
 return (
- <div className="flex flex-col items-center justify-center min-h-screen bg-white-blur text-gray-700 p-2 gap-5">
+ <div className="flex flex-col items-center justify-center min-h-screen text-gray-700 p-2 gap-5">
     <div  className="p-0 rounded-lg text-white shadow-2xl text-center text-5xl opacity-70 animate__animated animate__fadeIn" style={{ animationDelay: "500ms" }}>
         <strong><p className="text-md">กติกาการแข่ง Final</p></strong>
     </div>
