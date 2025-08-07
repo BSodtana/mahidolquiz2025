@@ -117,9 +117,14 @@ io.on("connection", (socket) => {
           clearInterval(interval)
           setTimeout(async () => {
             CURRENT_GAME_STATUS = "WAIT"
-            let getLatest = await db.query("SELECT user_id, answer, question_id, createdDateTime FROM answer_log t1 INNER JOIN (SELECT MAX(createdDateTime) as maxTime FROM answer_log GROUP BY answer_log.user_id) t2 ON t1.createdDateTime = t2.maxTime  WHERE question_id = ?", [CURRENT_QUESTION_SELECTED])
-            getLatest.forEach((row) => {
-              db.query("INSERT INTO answer (user_id, answer, question_id, score) VALUES (?,?,?,0)", [row.user_id, row.answer, row.question_id])
+            let getLatest = await db.query("SELECT t1.user_id, t1.answer, t1.question_id FROM answer_log t1 INNER JOIN (SELECT user_id, MAX(createdDateTime) as maxTime FROM answer_log WHERE question_id = ? GROUP BY user_id) t2 ON t1.user_id = t2.user_id AND t1.createdDateTime = t2.maxTime WHERE t1.question_id = ?", [CURRENT_QUESTION_SELECTED, CURRENT_QUESTION_SELECTED]);
+            getLatest.forEach(async (row) => {
+              const [existing] = await db.query("SELECT * FROM answer WHERE user_id = ? AND question_id = ?", [row.user_id, row.question_id]);
+              if (existing) {
+                await db.query("UPDATE answer SET answer = ? WHERE user_id = ? AND question_id = ?", [row.answer, row.user_id, row.question_id]);
+              } else {
+                await db.query("INSERT INTO answer (user_id, answer, question_id, score) VALUES (?,?,?,0)", [row.user_id, row.answer, row.question_id]);
+              }
             })
             io.emit("CURRENT_GAME_STATUS", CURRENT_GAME_STATUS)
           }, 5000)
