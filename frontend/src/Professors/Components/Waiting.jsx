@@ -134,7 +134,7 @@ function ProfessorChecking() {
                             return <Card key={index} className="flex w-full h-full shadow-xl mt-5">
                                 <Card.Body >
                                     <Card.Title>{data.owner_name} {data.user_id === questionOwner ? (<Badge size="lg" color="warning">ทีมเจ้าของคำถาม</Badge>) : null}</Card.Title>
-                                    <img src={data.answer}></img>
+                                    <div className="text-xl text-center text-gray-700 h-48 overflow-y-auto">{data.answer}</div>
                                     <p>คะแนนในระบบ: {filterScore(data.user_id) ? filterScore(data.user_id) : "No Data"}</p>
                                     <div className="flex justify-around">
                                         {

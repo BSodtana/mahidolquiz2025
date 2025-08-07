@@ -1,16 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
-import CanvasDraw from "react-canvas-draw";
+import React, { useEffect, useState } from "react";
 import { Alert, Button, Divider, Modal } from "react-daisyui";
 import { GiPointySword } from "react-icons/gi"
 import { FetchItems, FetchQuestionData, LogData, timeFormat, ItemBeingUsed, GetHint } from "./helper";
 import * as BsIcon from "react-icons/bs"
 import PropTypes from "prop-types"
 import { ENDPOINT } from "../../../config"
-import bg_white from "../../../assets/solid-color-image.png"
-
 
 function AnswerQuestion({ COUNTDOWN_UNTIL, CURRENT_QUESTION }) {
-  const userCanva = useRef(null);
   const user = JSON.parse(localStorage.getItem("user"))
   const [question, setQuestion] = useState();
   // const [itemModal, setItemModal] = useState(false)
@@ -18,16 +14,14 @@ function AnswerQuestion({ COUNTDOWN_UNTIL, CURRENT_QUESTION }) {
   const [hint, setHint] = useState();
   const [questionModal, setQuestionModal] = useState(false)
   const [timeoutModal, setTimeoutModal] = useState(false)
+  const [textAnswer, setTextAnswer] = useState("")
 
   useEffect(() => {
     if (CURRENT_QUESTION) {
       setTimeoutModal(false)
       fetchQuestionData(CURRENT_QUESTION);
     }
-    if (COUNTDOWN_UNTIL === 0) {
-      LogData(user.user_id, CURRENT_QUESTION, userCanva.current.getDataURL())
-    }
-  }, [CURRENT_QUESTION, COUNTDOWN_UNTIL]);
+  }, [CURRENT_QUESTION]);
 
   useEffect(() => {
     if (COUNTDOWN_UNTIL <= 0) setTimeoutModal(true)
@@ -69,39 +63,22 @@ function AnswerQuestion({ COUNTDOWN_UNTIL, CURRENT_QUESTION }) {
     setItem(query)
   }
 
-  const [Answer, setAnswer] = useState()
-  
-  const HandleChangeAnswer = () => {
-      setAnswer(userCanva.current.getDataURL('png', bg_white, '#fff'))
-  }
+  const handleTextChange = (e) => {
+    setTextAnswer(e.target.value);
+  };
 
   useEffect(() => {
     if ((COUNTDOWN_UNTIL % 1 === 0) && (COUNTDOWN_UNTIL !== 0)) {
-      LogData(user.user_id, CURRENT_QUESTION, Answer)
+      LogData(user.user_id, CURRENT_QUESTION, textAnswer)
     }
-  }, [COUNTDOWN_UNTIL])
+  }, [COUNTDOWN_UNTIL, textAnswer, user.user_id, CURRENT_QUESTION])
 
-  useEffect (() => {
+  useEffect(() => {
     if (COUNTDOWN_UNTIL === 0) {
-      LogData(user.user_id, CURRENT_QUESTION, Answer)
+      LogData(user.user_id, CURRENT_QUESTION, textAnswer)
     }
-  })
+  }, [COUNTDOWN_UNTIL, textAnswer, user.user_id, CURRENT_QUESTION])
 
-  // const itemExecute = async (item_id) => {
-  //   try {
-  //     await ItemBeingUsed(user.user_id, item_id, CURRENT_QUESTION)
-  //     fetchItem();
-  //   } catch (err) {
-  //     console.log(err)
-  //   }
-  // }
-
-  // const filterUsed = (item_id) => {
-  //   if (item) {
-  //     let result = item.filter((data) => { return data.item_id === item_id })
-  //     return result[0].item_used
-  //   }
-  // }
 
   if (CURRENT_QUESTION)
     return (
@@ -116,31 +93,21 @@ function AnswerQuestion({ COUNTDOWN_UNTIL, CURRENT_QUESTION }) {
               </div>
               
               <div className="flex gap-2 items-right">
-                <Button className="text-black" style={{backgroundColor:"#86DC3D", borderWidth: '0'}} size="md" onClick={() => {}}>Save</Button>
+                <Button className="text-black" style={{backgroundColor:"#86DC3D", borderWidth: '0'}} size="md" onClick={() => { LogData(user.user_id, CURRENT_QUESTION, textAnswer)}}>Save</Button>
               </div>
               <p>{timeFormat(COUNTDOWN_UNTIL)}</p>
               <div className="flex gap-2 items-center">
-                {/*<Button size="md" onClick={() => { userCanva.current.undo() }}><BsIcon.BsArrowCounterclockwise /></Button>*/}
-                <Button color="error" size="md" onClick={() => { userCanva.current.eraseAll() }}><BsIcon.BsTrash /></Button>
-                
+                <Button color="error" size="md" onClick={() => { setTextAnswer("") }}><BsIcon.BsTrash /></Button>
               </div>
               
             </Alert>
           </div>
-          <CanvasDraw
-            style={{height: "85vh" , marginLeft: "10px", marginRight: "10px"}}
-            className="shadow-2xl"
-            ref={userCanva}
-            lazyRadius={0}
-            brushRadius={3}
-            canvasHeight={1000}
-            canvasWidth={1120}
-            allowOnlyPointerType={"pen"}
-            enablePanAndZoom={false}
-            onChange={() => {
-              HandleChangeAnswer(userCanva.current.getDataURL('png', bg_white, '#fff'));
-            }}
-            imgSrc={bg_white}
+          <textarea
+            style={{height: "85vh" , marginLeft: "10px", marginRight: "10px", width: "-webkit-fill-available"}}
+            className="shadow-2xl textarea textarea-bordered"
+            placeholder="คำตอบของคุณ"
+            onChange={handleTextChange}
+            value={textAnswer}
           />
         </div>
         {/* for final - physical item */}
