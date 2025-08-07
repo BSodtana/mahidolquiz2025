@@ -16,7 +16,11 @@ function Competition() {
     CURRENT_QUESTION_SELECTED,
     COUNTDOWN_UNTIL,
     emitSelectQuestion,
+    teamsData, // new state from socket
   ] = SocketConnection();
+
+  const user = JSON.parse(localStorage.getItem("user"));
+  const myTeamId = user?.user_id;
 
   if (CURRENT_GAME_STATUS === "WELCOME")
     return <WaitingScreen connection={isConnected} />;
@@ -43,11 +47,13 @@ function Competition() {
       <AnswerQuestion
         COUNTDOWN_UNTIL={COUNTDOWN_UNTIL}
         CURRENT_QUESTION={CURRENT_QUESTION_SELECTED}
+        teamsData={teamsData}
+        myTeamId={myTeamId}
       />
     );
   else if (CURRENT_GAME_STATUS === "AWAIT_SCORE") return <AwaitScore />;
-  else if (CURRENT_GAME_STATUS === "SHOW_SUMMARY") return <PlayResult CURRENT_QUESTION={CURRENT_QUESTION_SELECTED} />;
-  else if (CURRENT_GAME_STATUS === "REVEAL_SCORE") return <ScoreSummary />;
+  else if (CURRENT_GAME_STATUS === "SHOW_SUMMARY") return <PlayResult CURRENT_QUESTION={CURRENT_QUESTION_SELECTED} teamsData={teamsData} />;
+  else if (CURRENT_GAME_STATUS === "REVEAL_SCORE") return <ScoreSummary teamsData={teamsData} />;
   else {
     return <WaitingScreen connection={isConnected} />;
   }

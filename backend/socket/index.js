@@ -78,7 +78,7 @@ io.on("connection", (socket) => {
       io.emit("CURRENT_GAME_STATUS", "AWAIT_MC")
       io.emit("CURRENT_QUESTION_OWNER", data.user_id)
       io.emit("CURRENT_QUESTION_SELECTED", data.question_id)
-    } catch (error) {
+    } catch (error)
       console.log(error)
       io.emit("CURRENT_GAME_STATUS", "ERROR AT socket.on(select_question) ON /socket/index.js")
     }
@@ -102,10 +102,70 @@ io.on("connection", (socket) => {
     io.emit("CURRENT_QUESTION_SELECTED", CURRENT_QUESTION_SELECTED);
   })
 
+  //HANDLE ANSWER SUBMISSION
+  socket.on("SUBMIT_ANSWER", async (data) => {
+    const { userId, questionId, answer } = data;
+
+    try {
+        const [team] = await db.query("SELECT * FROM teams WHERE id = ? LIMIT 1", [userId]);
+        const [question] = await db.query("SELECT * FROM questions WHERE id = ? LIMIT 1", [questionId]);
+
+        if (!team || !question) {
+            return socket.emit("SUBMISSION_ERROR", { message: "Team or Question not found" });
+        }
+
+        const [existingAnswer] = await db.query("SELECT * FROM answer WHERE user_id = ? AND question_id = ?", [userId, questionId]);
+        if (existingAnswer.length > 0) {
+            return socket.emit("SUBMISSION_ERROR", { message: "Answer already submitted and graded." });
+        }
+
+        const totalTime = parseInt(question.time);
+        const isFast = TIME_LEFT >= totalTime / 2;
+
+        const correctAnswers = question.correct_answer.split('/').map(a => a.trim().toLowerCase());
+        const submittedAnswer = answer.trim().toLowerCase();
+        const isCorrect = correctAnswers.includes(submittedAnswer);
+
+        let scoreForThisQuestion = 0;
+        let newFlowerParts = team.flower_parts;
+        const scoreMultiplier = team.flower_parts / 5.0;
+
+        if (isCorrect) {
+            scoreForThisQuestion = (question.score || 0) * scoreMultiplier;
+            if (isFast) {
+                newFlowerParts++;
+            }
+        } else {
+            scoreForThisQuestion = 0;
+            newFlowerParts--;
+        }
+
+        newFlowerParts = Math.max(3, Math.min(7, newFlowerParts));
+
+        const [currentTeamState] = await db.query("SELECT score FROM teams WHERE id = ?", [userId]);
+        const newTotalScore = currentTeamState[0].score + scoreForThisQuestion;
+
+        await db.query("UPDATE teams SET score = ?, flower_parts = ? WHERE id = ?", [newTotalScore, newFlowerParts, userId]);
+        await db.query("INSERT INTO answer (user_id, question_id, answer, score) VALUES (?, ?, ?, ?)", [userId, questionId, answer, scoreForThisQuestion]);
+
+        io.emit("SCORE_UPDATE", {
+            userId: userId,
+            newTotalScore: newTotalScore,
+            newFlowerParts: newFlowerParts
+        });
+
+        socket.emit("SUBMISSION_CONFIRMED", { success: true });
+
+    } catch (err) {
+        console.error("Error in SUBMIT_ANSWER:", err);
+        socket.emit("SUBMISSION_ERROR", { message: "An error occurred during submission." });
+    }
+  });
+
   //HANDLE START AND TIME LEFT
   socket.on("START_QUESTION", async () => {
     try {
-      let question_data = await db.query("SELECT id, time FROM questions WHERE id = ? LIMIT 1", [CURRENT_QUESTION_SELECTED])
+      let [question_data] = await db.query("SELECT id, time FROM questions WHERE id = ? LIMIT 1", [CURRENT_QUESTION_SELECTED])
       let time = parseInt(question_data[0].time)
       TIME_LEFT = time
       io.emit("COUNTDOWN_UNTIL", TIME_LEFT)
@@ -116,17 +176,66 @@ io.on("connection", (socket) => {
         if (TIME_LEFT <= 0) {
           clearInterval(interval)
           setTimeout(async () => {
-            CURRENT_GAME_STATUS = "WAIT"
-            let getLatest = await db.query("SELECT t1.user_id, t1.answer, t1.question_id FROM answer_log t1 INNER JOIN (SELECT user_id, MAX(createdDateTime) as maxTime FROM answer_log WHERE question_id = ? GROUP BY user_id) t2 ON t1.user_id = t2.user_id AND t1.createdDateTime = t2.maxTime WHERE t1.question_id = ?", [CURRENT_QUESTION_SELECTED, CURRENT_QUESTION_SELECTED]);
-            getLatest.forEach(async (row) => {
-              const [existing] = await db.query("SELECT * FROM answer WHERE user_id = ? AND question_id = ?", [row.user_id, row.question_id]);
-              if (existing) {
-                await db.query("UPDATE answer SET answer = ? WHERE user_id = ? AND question_id = ?", [row.answer, row.user_id, row.question_id]);
-              } else {
-                await db.query("INSERT INTO answer (user_id, answer, question_id, score) VALUES (?,?,?,0)", [row.user_id, row.answer, row.question_id]);
-              }
-            })
-            io.emit("CURRENT_GAME_STATUS", CURRENT_GAME_STATUS)
+            try {
+                CURRENT_GAME_STATUS = "WAIT";
+                const questionId = CURRENT_QUESTION_SELECTED;
+                const [question_details] = await db.query("SELECT * FROM questions WHERE id = ? LIMIT 1", [questionId]);
+                const [teams] = await db.query("SELECT * FROM teams");
+
+                const [latestAnswers] = await db.query(
+                    `SELECT t1.user_id, t1.answer FROM answer_log t1
+                     INNER JOIN (
+                        SELECT user_id, MAX(createdDateTime) as maxTime
+                        FROM answer_log WHERE question_id = ? GROUP BY user_id
+                     ) t2 ON t1.user_id = t2.user_id AND t1.createdDateTime = t2.maxTime
+                     WHERE t1.question_id = ?`,
+                    [questionId, questionId]
+                );
+                const answersMap = new Map(latestAnswers.map(a => [a.user_id, a.answer]));
+
+                for (const team of teams) {
+                    const userId = team.id;
+                    const [existingGraded] = await db.query("SELECT * FROM answer WHERE user_id = ? AND question_id = ?", [userId, questionId]);
+                    if (existingGraded.length > 0) {
+                        continue;
+                    }
+
+                    const loggedAnswer = answersMap.get(userId) || "";
+                    let isCorrect = false;
+                    if (loggedAnswer) {
+                        const correctAnswers = question_details[0].correct_answer.split('/').map(a => a.trim().toLowerCase());
+                        isCorrect = correctAnswers.includes(loggedAnswer.trim().toLowerCase());
+                    }
+
+                    let scoreForThisQuestion = 0;
+                    let newFlowerParts = team.flower_parts;
+                    const scoreMultiplier = team.flower_parts / 5.0;
+
+                    if (isCorrect) {
+                        scoreForThisQuestion = (question_details[0].score || 0) * scoreMultiplier;
+                    } else {
+                        scoreForThisQuestion = 0;
+                        newFlowerParts--;
+                    }
+
+                    newFlowerParts = Math.max(3, Math.min(7, newFlowerParts));
+                    const newTotalScore = team.score + scoreForThisQuestion;
+
+                    await db.query("UPDATE teams SET score = ?, flower_parts = ? WHERE id = ?", [newTotalScore, newFlowerParts, userId]);
+                    await db.query("INSERT INTO answer (user_id, question_id, answer, score) VALUES (?, ?, ?, ?)", [userId, questionId, loggedAnswer, scoreForThisQuestion]);
+
+                    io.emit("SCORE_UPDATE", {
+                        userId: userId,
+                        newTotalScore: newTotalScore,
+                        newFlowerParts: newFlowerParts
+                    });
+                }
+
+                io.emit("CURRENT_GAME_STATUS", CURRENT_GAME_STATUS);
+
+            } catch (err) {
+                console.error("Error in timer-end logic:", err);
+            }
           }, 5000)
         }
       }, 1000)
