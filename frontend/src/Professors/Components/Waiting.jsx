@@ -84,16 +84,16 @@ function ProfessorChecking() {
     }
 
     return (
-        <div>
+        <div className="p-4">
             <Toaster position="top-center" reverseOrder={false} />
-            <Alert innerClassName="flex justify-around" className="shadow-xl">
+            <Alert innerClassName="flex justify-around" className="shadow-xl glass">
                 <p>สถานะเกมปัจจุบัน : {`${gameStatus}`}</p>
                 <p>ลูป : {loop}</p>
                 <p>คำถามข้อปัจจุบัน : {currentQuestionSelect ? currentQuestionSelect : "NONE"}</p>
                 <p>ทีมเจ้าของคำถาม : {questionOwner ? questionOwner : "NONE"}</p>
                 <p>เหลือเวลาอีก {timeFormat(countdownUntil)} นาที</p>
             </Alert>
-            <Card className="w-full shadow-xl mt-2" style={{minHeight: '500px'}}>
+            <Card className="w-full shadow-xl mt-2 bg-white bg-opacity-80" style={{minHeight: '500px'}}>
                 <Card.Body>
                     <Card.Title>
                         หมวด {question && question.type} - {question && question.score} คะแนน - {question && question.time} วินาที
@@ -131,7 +131,7 @@ function ProfessorChecking() {
                 <div className="grid grid-cols-4 gap-1">
                     {
                         answers && answers.map((data, index) => {
-                            return <Card key={index} className="flex w-full h-full shadow-xl mt-5">
+                            return <Card key={index} className="flex w-full h-full shadow-xl mt-5 bg-white bg-opacity-80">
                                 <Card.Body >
                                     <Card.Title>{data.owner_name} {data.user_id === questionOwner ? (<Badge size="lg" color="warning">ทีมเจ้าของคำถาม</Badge>) : null}</Card.Title>
                                     <div className="text-xl text-center text-gray-700 h-48 overflow-y-auto">{data.answer}</div>
