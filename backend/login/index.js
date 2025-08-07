@@ -8,6 +8,7 @@ router.get("/", (req, res) => {
 
 router.post("/", async (req, res) => {
   let { username, password } = req.body;
+  console.log("Login attempt with username:");
   if (!username || !password) {
     res.status(400).json({
       success: false,

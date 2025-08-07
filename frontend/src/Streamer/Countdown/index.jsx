@@ -5,7 +5,6 @@ import * as BsIcon from "react-icons/bs"
 import { ENDPOINT } from '../../config';
 import { PropTypes } from "prop-types"
 import Zoom from 'react-medium-image-zoom';
-import 'react-medium-image-zoom/dist/styles.css';
 
 
 function StreamerCountdown({ TIME_LEFT, CURRENT_QUESTION }) {
