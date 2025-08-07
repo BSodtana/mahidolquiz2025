@@ -5,6 +5,7 @@ import { FetchAnswer, FetchScore } from "./helper";
 import * as BsIcon from "react-icons/bs"
 import { ENDPOINT } from "../../config";
 import { FetchQuestionData } from "./helper";
+
 function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
   const [answer, setAnswer] = useState(false);
   const [score, setScore] = useState()
@@ -103,7 +104,7 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
                     {CURRENT_STATUS === "SHOW_SUMMARY" ? filterScore(data.user_id) > 0 ? <BsIcon.BsCheckLg className="animate__animated animate__fadeInUp text-success text-5xl" /> : <BsIcon.BsXLg className="animate__animated animate__fadeInUp text-error text-5xl" /> : null}
                     {QUESTION_OWNER === data.user_id ? <Badge color="warning">เจ้าของคำถาม</Badge> : null}
                   </Card.Title>
-                  <img src={data.answer} className="h-48"></img>
+                  <div className="text-xl text-center text-gray-700 h-48 overflow-y-auto">{data.answer}</div>
                   <Card.Actions>
                     {CURRENT_STATUS === "SHOW_SUMMARY" ? <p className={filterScore(data.user_id) > 0 ? "text-center text-4xl text-success animate__animated animate__fadeInUp" : "text-center text-4xl text-error animate__animated animate__fadeInUp"}>{filterScore(data.user_id)}</p> : null}
                   </Card.Actions>
