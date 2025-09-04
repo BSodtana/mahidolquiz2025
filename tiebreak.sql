@@ -1,0 +1,9 @@
+INSERT INTO `questions` (`id`, `type`, `majorQ`, `text`, `pics`, `level`, `score`, `time`, `section`, `isSelected`, `sequence`, `correct_answer`, `correct_answer_description`, `majorpics`, `underline`) VALUES
+('TB01', 'TB', NULL, 'หากผู้ป่วยถูกสุนัขกัดจนมีแผลฉีกขาดและมีเลือดออก เมื่อไปถึงโรงพยาบาล แพทย์จะฉีดอะไร /n ให้กับผู้ป่วยบ้าง จงระบุให้จำเพาะ', NULL, NULL, 1.0, 45.0, 'NULL', NULL, NULL, ' Rabies vaccine + RIG (Rabies Immunoglobulin)', NULL, NULL,NULL),
+('TB02', 'TB', NULL, 'ผู้ป่วยได้รับอันตรายจากสัตว์มีพิษไม่ทราบชนิด แพทย์ตรวจร่ายกายพบแผลพุพองดังภาพ หลังจากนั้น /n ผู้ป่วยรู้สึกคลื่นไส้ อาเจียนและมีไข้ร่วมด้วย จงระบุชื่อของสัตว์มีพิษชนิดนี้', "TB02.jpg", NULL, 1.0, 45.0, 'NULL', NULL, NULL, 'แมลงก้นกระดก', NULL, NULL,NULL),
+('TB03', 'TB', NULL, 'หญิงตั้งครรภ์ได้รับการตรวจภาวะเบาหวานระหว่างตั้งครรภ์ โดยการดื่มสารละลายกลูโคส 75 กรัม หลังจากอดอาหารมาแล้ว 8 ชั่วโมง และตรวจดูระดับน้ำตาลที่ลดลงเมื่อเวลาผ่านไป 2 ชั่วโมง การตรวจชนิดนี้ชื่อว่าอะไร (Full name)', NULL, NULL, 1.0, 45.0, 'NULL', NULL, NULL, 'Oral glucose tolerance test', NULL, NULL,NULL),
+('TB04', 'TB', NULL, 'จงระบุ genus ของเชื้อ normal flora ที่พบมากที่สุดใน urogenital tract ของคนที่มีสุขภาพดี', NULL, NULL, 1.0, 45.0, 'NULL', NULL, NULL, 'Lactobacillus', NULL, NULL,NULL),
+('TB05', 'TB', NULL, 'การรับประทานกล้วยจำนวน 555 ลูก จะเทียบเท่ากับผลกระทบทางรังสีต่อสุขภาพของสิ่งใดต่อไปนี้ (Dental X-ray/ Chest CT scan/Chest X-ray)', NULL, NULL, 1.0, 45.0, 'NULL', NULL, NULL, 'Chest X-ray', NULL, NULL,NULL),
+('Test01', 'TEST', NULL, 'สีประจำคณะแพทย์มหาวิทยาลัยเชียงใหม่คือ', 'TEST01A.svg', NULL, 0, 120, 'NULL', NULL, NULL, 'สีเขียวหัวเป็ดแมนดาริน', NULL, NULL,NULL),
+('Test02', 'TEST', NULL, 'จงเขียนชื่อเต็มของกรุงเทพมหานคร', 'IMG_9274.JPG', NULL, 0, 120, 'NULL', NULL, NULL, 'กรุงเทพมหานคร อมรรัตนโกสินทร์ มหินทรายุธยา มหาดิลกภพ นพรัตน์ราชธานีบุรีรมย์ อุดมราชนิเวศน์มหาสถาน อมรพิมานอวตารสถิต สักกะทัตติยะวิษณุกรรมประสิทธิ์', NULL, NULL,NULL);
+COMMIT;
