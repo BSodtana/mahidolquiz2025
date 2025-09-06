@@ -28,6 +28,7 @@ const answer = require("./answer")
 const user = require("./user")
 const item = require("./item")
 const photo = require("./static")
+const flower = require("./flower")
 
 app.use("/login", login)
 app.use("/questions", questions)
@@ -35,6 +36,7 @@ app.use("/answer", answer)
 app.use("/user", user)
 app.use("/items", item)
 app.use("/static", photo)
+app.use("/flower", flower)
 
 app.get("/", (req, res) => {
   res.status(200).json({ status: `Server is running at port ${port}` });

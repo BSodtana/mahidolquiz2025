@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Alert, Badge, Button, Card, Divider, Form, Input, InputGroup } from 'react-daisyui';
 import toast, { Toaster } from "react-hot-toast"
 import * as BsIcon from 'react-icons/bs';
-import { FetchQuestionData, FetchUserAnswer, GetUserItems, GetUserScore, timeFormat, UpdateScore, } from './helper';
+import { FetchQuestionData, FetchUserAnswer, GetUserItems, GetUserScore, timeFormat, UpdateScore, getFlowerState, changeFlowerState, checkFlowerState,updateFlowerStatus} from './helper';
 import { SocketConnection } from './socket';
 import { ENDPOINT } from '../../config';
 
@@ -27,7 +27,7 @@ function ProfessorChecking() {
     useEffect(() => {
         if (gameStatus === "AWAIT_SCORE") {
             fetchUserAnswer(currentQuestionSelect)
-            fetchItemUsed(currentQuestionSelect)
+            //fetchItemUsed(currentQuestionSelect)
         }
     }, [countdownUntil, currentQuestionSelect, gameStatus])
 
@@ -49,8 +49,15 @@ function ProfessorChecking() {
         }
     }
 
+    // Pull flower multiplier
     const submitScore = async (user_id, score) => {
-        await UpdateScore(user_id, score, currentQuestionSelect)
+        let flower = await getFlowerState(user_id);
+        let {reward,early} = await checkFlowerState(user_id, currentQuestionSelect);
+        //if(reward == 0){
+            await updateFlowerStatus(user_id, early, 1, currentQuestionSelect);
+            await changeFlowerState(user_id, flower + early + 1, early > 0 ? "เพิ่มดอกไม้เนื่องจากส่งเร็ว" : "ลดหรือเท่ากับดอกไม้", currentQuestionSelect);
+        //}
+        await UpdateScore(user_id, score, currentQuestionSelect, flower)
         toast.success(`บันทึกคะแนนของผู้ใช้ ${user_id} = ${score} คะแนน สำเร็จแล้ว`)
         fetchScore()
     }

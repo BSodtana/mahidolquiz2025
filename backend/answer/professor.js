@@ -16,16 +16,33 @@ router.get("/answers/:current_question", async (req,res)=>{
 })
 
 router.post("/setscore", async (req,res)=>{
-    let {question_id, user_id, score} = req.body
-    try{
-        await db.query("UPDATE answer SET score = ? WHERE user_id = ? AND question_id = ?", [score, user_id, question_id])
-        res.status(200).json({status: "success"})
-    }
-    catch(err){
-        res.status(500).json({status: "error", error: err})
-        console.log(err)
-    }
-})
+  let { question_id, user_id, score, flower } = req.body
+
+  if (!question_id || !user_id || score === undefined || !flower) {
+    return res.status(400).json({ status: "error", message: "Missing required parameters: question_id, user_id, score, or flower." });
+  }
+
+  try {
+    let flower_multiplier = flower / 5.0;
+    let flower_modified_score = score * flower_multiplier;
+    let update_sql = `
+      UPDATE answer
+      SET 
+        score = ?, 
+        flower_modified_score = ?
+      WHERE user_id = ? AND question_id = ?
+    `;
+
+    let values = [score, flower_modified_score, user_id, question_id];
+
+    await db.query(update_sql, values);
+
+    res.status(200).json({ status: "success", message: "Scores updated successfully." });
+  } catch(err) {
+    console.error("Database update error:", err);
+    res.status(500).json({ status: "error", message: "An internal server error occurred.", error: err.message });
+  }
+});
 
 router.get("/summary", async (req,res)=>{
     try{

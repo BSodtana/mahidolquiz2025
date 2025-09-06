@@ -39,9 +39,9 @@ const FetchUserAnswer = async (question_id) => {
     }
 }
 
-const UpdateScore = async (user_id, score, question_id) =>{
+const UpdateScore = async (user_id, score, question_id, flower) =>{
     try{
-        await axios.post(`${ENDPOINT}/answer/score/setscore/`, {question_id: question_id,user_id: user_id, score: score})
+        await axios.post(`${ENDPOINT}/answer/score/setscore/`, {question_id: question_id,user_id: user_id, score: score, flower:flower})
     }catch(err){
         console.log(err)
         throw err;
@@ -66,4 +66,40 @@ const GetUserScore = async (q_id) => {
     }
 }
 
-export {timeFormat, FetchQuestionData, FetchUserAnswer, UpdateScore, GetUserItems, GetUserScore}
+const getFlowerState = async (user_id) => {
+    try {
+        let data = await axios.get(`${ENDPOINT}/flower/states/${user_id}/`);
+        return data.data.data.current_units;
+    }catch (err) {
+        console.error(err);
+    }
+}
+
+const changeFlowerState = async (teamId, unitsToAdd, updateReason, questionId) => {
+    try{
+        await axios.post(`${ENDPOINT}/flower/change/`, {teamId: teamId,unitsToAdd: unitsToAdd, updateReason: updateReason, questionId:questionId})
+    }catch(err){
+        console.log(err)
+        throw err;
+    }
+}
+
+const checkFlowerState = async (user_id, current_question) => {
+    try {
+        let response = await axios.get(`${ENDPOINT}/flower/status/${user_id}/${current_question}/`);
+        return response.data.data;
+    }catch (err) {
+        console.error(err);
+    }
+}
+
+const updateFlowerStatus = async (user_id, is_early_submission, is_rewards, question_id) => {
+    try{
+        await axios.post(`${ENDPOINT}/flower/change/status/`, {user_id: user_id,is_early_submission: is_early_submission, is_rewards: is_rewards, question_id:question_id})
+    }catch(err){
+        console.log(err)
+        throw err;
+    }
+}
+
+export {timeFormat, FetchQuestionData, FetchUserAnswer, UpdateScore, GetUserItems, GetUserScore, getFlowerState, changeFlowerState, checkFlowerState, updateFlowerStatus}
