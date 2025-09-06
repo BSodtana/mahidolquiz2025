@@ -55,7 +55,7 @@ function ProfessorChecking() {
         let {reward,early} = await checkFlowerState(user_id, currentQuestionSelect);
         //if(reward == 0){
             await updateFlowerStatus(user_id, early, 1, currentQuestionSelect);
-            await changeFlowerState(user_id, flower + early + 1, early > 0 ? "เพิ่มดอกไม้เนื่องจากส่งเร็ว" : "ลดหรือเท่ากับดอกไม้", currentQuestionSelect);
+            //await changeFlowerState(user_id, flower + early + 1, early > 0 ? "เพิ่มดอกไม้เนื่องจากส่งเร็ว" : "ลดหรือเท่ากับดอกไม้", currentQuestionSelect);
         //}
         await UpdateScore(user_id, score, currentQuestionSelect, flower)
         toast.success(`บันทึกคะแนนของผู้ใช้ ${user_id} = ${score} คะแนน สำเร็จแล้ว`)
