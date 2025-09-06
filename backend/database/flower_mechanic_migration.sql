@@ -25,7 +25,6 @@ CREATE TABLE flower_state_history (
 );
 
 ALTER TABLE answer
-ADD COLUMN flower_multiplier DECIMAL(3,2) DEFAULT 1.00,
-ADD COLUMN flower_modified_score DECIMAL(10,2) DEFAULT 0;
-ADD COLUMN submission_time TIMESTAMP,
-ADD COLUMN is_early_submission BOOLEAN DEFAULT FALSE;
+ADD flower_modified_score DECIMAL(10, 2) NOT NULL DEFAULT 0.00;
+ADD is_early_submission TINYINT(1) NOT NULL DEFAULT 0;
+ADD is_rewards TINYINT(1) NOT NULL DEFAULT 0;

@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require("../config/db");
 
 // Get all flower states
-router.get("/flower/states", async (req, res) => {
+router.get("/states", async (req, res) => {
  try {
   // Use .rows to be explicit and consistent
   const { rows: flowerStates } = await db.query("SELECT team_id, current_units FROM flower_states");
@@ -14,55 +14,77 @@ router.get("/flower/states", async (req, res) => {
  }
 });
 
-// Get flower item state for a specific team
-router.get("/flower/states/:teamId", async (req, res) => {
+router.get("/states/:teamId", async (req, res) => {
+    let { teamId } = req.params;
     try {
-        const { teamId } = req.params;
-        // Parameterized query using $1 and passing the value as an array
-        const { rows: [teamState] } = await db.query("SELECT current_units FROM flower_states WHERE team_id = $1", [teamId]);
-
-        if (teamState) {
-            res.status(200).json({ data: teamState });
-        } else {
-            res.status(404).json({ error: "Team not found" });
-        }
+        let result = await db.query("SELECT current_units FROM flower_states WHERE team_id = ? LIMIT 1", [teamId]);
+        res.status(200).json({data: result[0]})
     } catch (err) {
         console.error("Failed to retrieve team state:", err);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
 
-router.post("/flower/change", async (req, res) => {
+router.post("/change/status/", async (req,res)=>{
+  let { user_id, is_early_submission, is_rewards, question_id } = req.body
+  try {
+    let update_sql = `
+      UPDATE answer
+      SET 
+        is_early_submission = ?, 
+        is_rewards = ?
+      WHERE user_id = ? AND question_id = ?
+    `;
+    let values = [is_early_submission, is_rewards, user_id, question_id];
+    await db.query(update_sql, values);
+    res.status(200).json({ status: "success", message: "Scores updated successfully." });
+  } catch(err) {
+    console.error("Database update error:", err);
+    res.status(500).json({ status: "error", message: "An internal server error occurred.", error: err.message });
+  }
+});
+
+router.get("/status/:user_id/:current_question", async (req, res) => {
+    let {user_id, current_question} = req.params
+    try{
+        let myAnswer = await db.query("SELECT is_rewards, is_early_submission FROM answer WHERE user_id = ? AND question_id = ? LIMIT 1", [user_id, current_question])
+        res.status(200).json({data: myAnswer[0]})
+    }catch(err){
+        console.log(err)
+    } 
+});
+
+router.post("/change", async (req, res) => {
     // 1. Input Validation
-    const { teamId, unitsToAdd, updateReason, questionId} = req.body;
+    let { teamId, unitsToAdd, updateReason, questionId} = req.body;
     
     if (!teamId || unitsToAdd === undefined || !updateReason || !questionId) {
         return res.status(400).json({ error: "Missing required fields." });
     }
     
     // 2. Start a database transaction
-    const client = await db.connect();
+    let client = await db.connect();
     try {
         await client.query('BEGIN');
 
         // 3. Select the current units and lock the row to prevent race conditions
-        const selectQuery = "SELECT current_units FROM flower_states WHERE team_id = $1 FOR UPDATE";
-        const { rows: [teamState] } = await client.query(selectQuery, [teamId]);
+        let selectQuery = "SELECT current_units FROM flower_states WHERE team_id = $1 FOR UPDATE";
+        let { rows: [teamState] } = await client.query(selectQuery, [teamId]);
 
         if (!teamState) {
             await client.query('ROLLBACK');
             return res.status(404).json({ error: "Team not found" });
         }
 
-        const previousUnits = teamState.current_units;
-        const newUnits = previousUnits + unitsToAdd;
+        let previousUnits = teamState.current_units;
+        let newUnits = previousUnits + unitsToAdd;
 
         // 4. Update the flower_states table
-        const updateQuery = "UPDATE flower_states SET current_units = $1 WHERE team_id = $2";
+        let updateQuery = "UPDATE flower_states SET current_units = $1 WHERE team_id = $2";
         await client.query(updateQuery, [newUnits, teamId]);
 
         // 5. Insert into the history table
-        const historyQuery = `
+        let historyQuery = `
             INSERT INTO flower_state_history 
             (team_id, previous_units, new_units, change_reason, question_id, changed_at)
             VALUES ($1, $2, $3, $4, $5, NOW())
@@ -91,7 +113,7 @@ router.post("/flower/change", async (req, res) => {
 });
 
 // Get all used items for a specific team
-router.get("/flower/items/:teamId", async (req, res) => {
+router.get("/items/:teamId", async (req, res) => {
     try {
         const { teamId } = req.params;
         const query = "SELECT item_type FROM item_usage WHERE team_id = $1";
@@ -106,7 +128,7 @@ router.get("/flower/items/:teamId", async (req, res) => {
 });
 
 // Record the usage of a flower item
-router.post("/flower/items/use", async (req, res) => {
+router.post("/items/use", async (req, res) => {
     try {
         // Input validation: Ensure all required fields are present
         const { teamId, itemType, questionId } = req.body;
@@ -141,7 +163,7 @@ router.post("/flower/items/use", async (req, res) => {
     }
 });
 
-router.get("/flower/history/:teamId", async (req, res) => {
+router.get("/history/:teamId", async (req, res) => {
     try {
         const { teamId } = req.params;
 

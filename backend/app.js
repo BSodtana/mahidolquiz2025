@@ -28,6 +28,9 @@ const answer = require("./answer")
 const user = require("./user")
 const item = require("./item")
 const photo = require("./static")
+const flower = require("./flower")
+
+app.use("/flower", flower)
 
 app.use("/login", login)
 app.use("/questions", questions)
