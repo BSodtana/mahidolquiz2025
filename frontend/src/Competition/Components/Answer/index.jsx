@@ -5,6 +5,9 @@ import { FetchItems, FetchQuestionData, LogData, timeFormat, ItemBeingUsed, GetH
 import * as BsIcon from "react-icons/bs"
 import PropTypes from "prop-types"
 import { ENDPOINT } from "../../../config"
+//Flower
+import PlayerFlowerWidget from "../FlowerDisplay/PlayerFlowerWidget";
+//
 
 function AnswerQuestion({ COUNTDOWN_UNTIL, CURRENT_QUESTION }) {
   const user = JSON.parse(localStorage.getItem("user"))
@@ -85,6 +88,13 @@ function AnswerQuestion({ COUNTDOWN_UNTIL, CURRENT_QUESTION }) {
       <>
         <div className="h-full w-full justify-center items-center">
           <div className="p-2">
+            {/* Flower Widget */}
+              <div className="flex items-center ml- auto mr-0 mb-2"> 
+                <PlayerFlowerWidget team_id={(JSON.parse(localStorage.getItem("user") || "{}")?.user_id) || "guest"} 
+                mock={true} compact /> 
+              </div>
+            {/* Flower Widget */}
+            
             <Alert innerClassName="flex justify-between" className="bg-transparent shadow-lg">
               <div className="flex gap-5 items-center">
                 <BsIcon.BsPerson /> {user.owner_name}

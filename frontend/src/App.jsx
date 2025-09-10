@@ -7,6 +7,9 @@ import 'animate.css';
 import LoginPage from "./Login";
 import Professors from "./Professors";
 import StreamerRoutes from "./Streamer";
+//ทดสอบ
+import FlowerSandbox from "./Competition/Components/FlowerDisplay/FlowerSandbox";
+
 function App() {
   return (
     <div>
@@ -16,6 +19,8 @@ function App() {
         <Route path="/professor/*" element={<Professors />} />
         <Route path="/streamer/*" element={<StreamerRoutes />} />
         <Route path="/admin/*" element={<AdminRouter />} />
+        {/* ... ทดสอบ */}
+        <Route path="/FlowerSandbox" element={<FlowerSandbox />} />
       </Routes>
 
     </div>

@@ -13,6 +13,9 @@ function LoginPage(props) {
     try {
       let data = await handleLogin(e);
       localStorage.setItem("user", JSON.stringify(data.data))
+      //เซ็ต team_id ตอน loginJSON.parse(localStorage.getItem('user')) 
+      localStorage.setItem("team_id", String(data.data.user_id || data.data.username))
+      //
       if (data?.data.role === "participant") return navigate("/competition")
       if (data?.data.role === "streamer") return navigate("/streamer")
       if (data?.data.role === "admin") return navigate("/admin")
