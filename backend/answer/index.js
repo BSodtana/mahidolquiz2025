@@ -20,6 +20,22 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.post("/save", async (req, res) => {
+  let {question_id, user_id, answer} = req.body;
+  try{
+    const [existing] = await db.query("SELECT * FROM answer WHERE user_id = ? AND question_id = ?", [user_id, question_id]);
+    if (existing) {
+      await db.query("UPDATE answer SET answer = ? WHERE user_id = ? AND question_id = ?", [answer, user_id, question_id]);
+    } else {
+      await db.query("INSERT INTO answer (user_id, answer, question_id, score) VALUES (?,?,?,0)", [user_id, answer, question_id]);
+    }
+    res.status(200).json({error: false, success: true});
+  } catch(err) {
+    console.log(err);
+    res.status(500).json({error: err});
+  }
+});
+
 router.get("/myans/:user_id", async (req,res)=>{
  let {user_id} = req.params
  try{

@@ -29,11 +29,12 @@ router.post("/setscore", async (req,res)=>{
       UPDATE answer
       SET 
         score = ?, 
-        flower_modified_score = ?
+        flower_modified_score = ?,
+        flower_no = ?
       WHERE user_id = ? AND question_id = ?
     `;
 
-    let values = [score, flower_modified_score, user_id, question_id];
+    let values = [score, flower_modified_score, flower, user_id, question_id];
 
     await db.query(update_sql, values);
 
@@ -44,20 +45,54 @@ router.post("/setscore", async (req,res)=>{
   }
 });
 
-router.get("/summary", async (req,res)=>{
-    try{
-        let score = await db.query("SELECT users.user_id, users.owner_name, SUM(answer.score) AS score FROM answer JOIN users ON users.user_id = answer.user_id GROUP BY answer.user_id ORDER BY SUM(answer.score) DESC")
-        res.status(200).json({status: "success", score: score})
-    }catch(err){
-        res.status(500).json({status: "error", detail: err})
-    }
-})
+router.get("/summary", async (_req, res) => {
+  try {
+    const score = await db.query(
+      `SELECT
+        u.user_id,
+        u.owner_name,
+        COALESCE(scores.total_score, 0) AS score,
+        COALESCE(fs.current_units, 0) AS flower_units,
+        COALESCE(items.items_used, '') AS items_used
+      FROM users AS u
+      LEFT JOIN (
+        SELECT user_id, SUM(flower_modified_score) AS total_score
+        FROM answer
+        GROUP BY user_id
+      ) AS scores ON scores.user_id = u.user_id
+      LEFT JOIN flower_states AS fs ON fs.team_id = u.user_id
+      LEFT JOIN (
+        SELECT
+          team_id,
+          GROUP_CONCAT(
+            CASE
+              WHEN (item_type = 'ADD'     AND is_used < 2)
+                OR (item_type = 'REVIVE' AND is_used < 1)
+                OR (item_type = 'SHIELD' AND is_used < 1)
+              THEN item_type
+              ELSE NULL
+            END
+            ORDER BY item_type SEPARATOR ','
+          ) AS items_used
+        FROM item_usage
+        GROUP BY team_id
+      ) AS items ON items.team_id = u.user_id
+      WHERE COALESCE(fs.current_units, 0) > 0
+      ORDER BY score DESC`
+    );
+
+    res.status(200).json({ status: "success", score });
+  } catch (err) {
+    res.status(500).json({ status: "error", detail: err });
+  }
+});
+
 
 router.get("/:question_id", async (req,res)=>{
     let {question_id} = req.params
     try{
         let q_data = await db.query("SELECT correct_answer, correct_answer_description, correct_answer_photo FROM questions WHERE id = ?", [question_id])
-        let score = await db.query("SELECT users.user_id, users.owner_name, answer.score AS score FROM answer JOIN users ON users.user_id = answer.user_id WHERE answer.question_id = ?", [question_id])
+        let score = await db.query("SELECT users.user_id, users.owner_name, answer.flower_modified_score AS score FROM answer JOIN users ON users.user_id = answer.user_id WHERE answer.question_id = ?", [question_id])
         res.status(200).json({success: true, data: {question_data: q_data, score: score}})
     }catch(err){
         console.log(err)
@@ -70,7 +105,7 @@ router.get("/:question_id/:user_id", async (req,res)=>{
     if(!question_id) res.status(400).json({success: false, reason: "ไม่ได้รับ question_id เป็น request paramater"})
     if(!user_id) res.status(400).json({success: false, reason: "ไม่ได้รับ user_id เป็น request paramater"})
     try{
-        let score = await db.query("SELECT users.user_id, users.owner_name, answer.score AS score FROM answer JOIN users ON users.user_id = answer.user_id WHERE answer.question_id = ? AND users.user_id = ? LIMIT 1", [question_id, user_id])
+        let score = await db.query("SELECT users.user_id, users.owner_name, answer.flower_modified_score AS score FROM answer JOIN users ON users.user_id = answer.user_id WHERE answer.question_id = ? AND users.user_id = ? LIMIT 1", [question_id, user_id])
         res.status(200).json({status: "success", data: score[0]})
     }catch(err){
         res.status(500).json({error: true, detail: err})

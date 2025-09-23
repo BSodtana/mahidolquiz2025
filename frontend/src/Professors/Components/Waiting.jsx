@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Alert, Badge, Button, Card, Divider, Form, Input, InputGroup } from 'react-daisyui';
 import toast, { Toaster } from "react-hot-toast"
 import * as BsIcon from 'react-icons/bs';
-import { FetchQuestionData, FetchUserAnswer, GetUserItems, GetUserScore, timeFormat, UpdateScore, getFlowerState, changeFlowerState, checkFlowerState,updateFlowerStatus} from './helper';
+import { FetchQuestionData, FetchUserAnswer, GetUserItems, GetUserScore, timeFormat, UpdateScore, getFlowerState, changeFlowerState, checkFlowerState,updateFlowerStatus, GetItemRealtime} from './helper';
 import { SocketConnection } from './socket';
 import { ENDPOINT } from '../../config';
 
@@ -49,16 +49,56 @@ function ProfessorChecking() {
         }
     }
 
+    const limitScore = (score) => {
+        return Math.max(3, Math.min(score, 7));
+    };
+    
     // Pull flower multiplier
     const submitScore = async (user_id, score) => {
         let flower = await getFlowerState(user_id);
-        let {reward,early} = await checkFlowerState(user_id, currentQuestionSelect);
-        //if(reward == 0){
-            await updateFlowerStatus(user_id, early, 1, currentQuestionSelect);
-            //await changeFlowerState(user_id, flower + early + 1, early > 0 ? "เพิ่มดอกไม้เนื่องจากส่งเร็ว" : "ลดหรือเท่ากับดอกไม้", currentQuestionSelect);
-        //}
-        await UpdateScore(user_id, score, currentQuestionSelect, flower)
-        toast.success(`บันทึกคะแนนของผู้ใช้ ${user_id} = ${score} คะแนน สำเร็จแล้ว`)
+        let { is_rewards: reward, is_early_submission: early , flower_no: flower_no, is_protect:is_protect} = await checkFlowerState(user_id, currentQuestionSelect);
+        let finalFlower = (reward == 0) ? flower : flower_no;
+        let text;
+        if (reward === 1) {
+            //console.log("Reward used, flower from reward: ", flower_no);
+        }
+        // Check item used
+        /*
+        if(item_used == 1){
+            new_flower += 1;
+        }else if(item_used == -1){
+            new_flower = 5;
+        }*/
+        finalFlower = limitScore(finalFlower);
+        await UpdateScore(user_id, score, currentQuestionSelect, finalFlower)
+        toast.success(`ทีม ${user_id}, ได้คะแนนดิบ ${score} x (${finalFlower} ดอก / 5) = ${(score * finalFlower) / 5} คะแนน`)
+        // การจัดการดอกไม้มีปัญหา ให้ +- ส่งผลรอบหน้า (Working)
+        if (early == 1 && score > 0) {
+            finalFlower += 1;
+            text = "เพิ่มดอกไม้เนื่องจากส่งเร็ว +1 ดอก";
+            toast.success(text);
+        } else if (score == 0 && is_protect == 1) {
+            text = "ป้องกันลดดอกไม้เนื่องจากคำตอบไม่ถูกต้อง -1 ดอก (ใช้ไอเท็ม SHIELD)";
+            toast.success(text);
+        } else if (score == 0) {
+            finalFlower -= 1;
+            text = "ลดดอกไม้เนื่องจากคำตอบไม่ถูกต้อง -1 ดอก";
+            toast.success(text);
+        } else {
+            text = "ไม่มีการเปลี่ยนแปลงดอกไม้ หรือผลจากไอเท็ม";
+        }
+        finalFlower = limitScore(finalFlower);
+
+        if(reward == 0){
+            await changeFlowerState(user_id, flower, finalFlower, text, currentQuestionSelect);
+            await updateFlowerStatus(user_id, early, 1, flower, currentQuestionSelect);
+            //console.log("flower to new_flower", flower, finalFlower);
+        }else{
+            await changeFlowerState(user_id, flower_no, finalFlower, text, currentQuestionSelect);
+            await updateFlowerStatus(user_id, early, 1, flower_no, currentQuestionSelect);
+            //console.log("reward flower to new_flower", flower_no, finalFlower);
+        }
+        //await updateFlowerStatus(user_id, 0, 0, flower, currentQuestionSelect);
         fetchScore()
     }
 
@@ -142,24 +182,31 @@ function ProfessorChecking() {
                                 <Card.Body >
                                     <Card.Title>{data.owner_name} {data.user_id === questionOwner ? (<Badge size="lg" color="warning">ทีมเจ้าของคำถาม</Badge>) : null}</Card.Title>
                                     <div className="text-xl text-center text-gray-700 h-48 overflow-y-auto">{data.answer}</div>
-                                    <p>คะแนนในระบบ: {filterScore(data.user_id) ? filterScore(data.user_id) : "No Data"}</p>
+                                    {/*<p>คะแนนในระบบ: {filterScore(data.user_id) ? (filterScore(data.user_id)*(cur_status_flower/5)) : "No Data"}</p>*/}
                                     <div className="flex justify-around">
                                         {
                                             user.role === "teacher"
                                                ? <div className="flex">
-                                                    {/* <p className="text-error">ACTIVE ITEMS</p> {
-                                                        filterUsedItem(data.user_id) && filterUsedItem(data.user_id).map((data, index) => {
-                                                            return <p key={index}>- {data.item_id}</p>
-                                                        })
-                                                    }{streak && streak.includes(data.user_id) ? <Badge color="error">ทีมนี้มี STREAK!</Badge> : null} */}
-                                                    <Form  onSubmit={(e) => { e.preventDefault(); submitScore(data.user_id, e.target.value.value) }}>
+                                                    <Form  onSubmit={(e) => { e.preventDefault(); }}>
                                                         <InputGroup  className="grid grid-cols-3">
-                                                            <span>คะแนน</span>
-                                                            <Input type="text" name="value" placeholder="กรอกคะแนน" ref={ref} bordered onBlur={(e) => { submitScore(data.user_id, e.target.value) }} />
-                                                            <span>&nbsp;เต็ม&nbsp;{question ? question?.score : '0'}</span>
-
+                                                            <Button
+                                                                    color="error" // สีแดง
+                                                                    size="md"
+                                                                    onClick={() => submitScore(data.user_id, 0)}
+                                                                >
+                                                                <BsIcon.BsX />
+                                                            </Button>
+                                                            <Input className="text-center" type="text" readOnly bordered value={filterScore(data.user_id) !== "No Data" ? filterScore(data.user_id) : ""} />
+                                                            {/*<span>&nbsp;เต็ม&nbsp;{question ? question?.score : '0'}</span>*/}
+                                                            <Button
+                                                                    color="success"
+                                                                    size="md"
+                                                                    onClick={() => submitScore(data.user_id, question ? question?.score : 0)}
+                                                                >
+                                                                <BsIcon.BsCheck2Circle />
+                                                            </Button>
                                                         </InputGroup>
-                                                        <Button type='submit' className='mt-3'>Save</Button>
+                                                        {/*<Button type='submit' className='mt-3'>Save</Button>*/}
                                                     </Form>
                                                 </div>
                                                 : <></>

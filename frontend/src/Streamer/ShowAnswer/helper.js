@@ -20,6 +20,17 @@ const FetchScore = async (q_id) => {
     }
 }
 
+const FetchFlowerStates = async () => {
+    try {
+        let res = await axios.get(`${ENDPOINT}/flower/states`);
+        console.log(res.data?.data);
+        return Array.isArray(res.data?.data) ? res.data.data : [];
+    } catch (err) {
+        console.error(err);
+        return [];
+    }
+}
+
 const FetchQuestionData = async (question_id) =>{
     try{
         let question = await axios.get(`${ENDPOINT}/questions/${question_id}/`)
@@ -29,5 +40,4 @@ const FetchQuestionData = async (question_id) =>{
     }
 } 
 
-
-export {FetchAnswer, FetchScore, FetchQuestionData}
+export {FetchAnswer, FetchScore, FetchQuestionData, FetchFlowerStates}

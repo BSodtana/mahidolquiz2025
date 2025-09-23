@@ -68,16 +68,17 @@ const GetUserScore = async (q_id) => {
 
 const getFlowerState = async (user_id) => {
     try {
-        let data = await axios.get(`${ENDPOINT}/flower/states/${user_id}/`);
-        return data.data.data.current_units;
+        let response = await axios.get(`${ENDPOINT}/flower/states/${user_id}/`);
+        let units = response?.data?.data?.current_units;
+        return typeof units === "number" ? units : 5;
     }catch (err) {
         console.error(err);
     }
 }
 
-const changeFlowerState = async (teamId, unitsToAdd, updateReason, questionId) => {
+const changeFlowerState = async (user_id, b_flower, a_flower, text, question_id) => {
     try{
-        await axios.post(`${ENDPOINT}/flower/change/`, {teamId: teamId,unitsToAdd: unitsToAdd, updateReason: updateReason, questionId:questionId})
+        await axios.post(`${ENDPOINT}/flower/change/`, {user_id: user_id,b_flower: b_flower, a_flower: a_flower, text: text, question_id: question_id})
     }catch(err){
         console.log(err)
         throw err;
@@ -93,13 +94,22 @@ const checkFlowerState = async (user_id, current_question) => {
     }
 }
 
-const updateFlowerStatus = async (user_id, is_early_submission, is_rewards, question_id) => {
+const updateFlowerStatus = async (user_id, is_early_submission, is_rewards, flower_no, question_id) => {
     try{
-        await axios.post(`${ENDPOINT}/flower/change/status/`, {user_id: user_id,is_early_submission: is_early_submission, is_rewards: is_rewards, question_id:question_id})
+        await axios.post(`${ENDPOINT}/flower/change/status/`, {user_id: user_id,is_early_submission: is_early_submission, is_rewards: is_rewards, flower_no:flower_no,question_id:question_id})
     }catch(err){
         console.log(err)
         throw err;
     }
 }
 
-export {timeFormat, FetchQuestionData, FetchUserAnswer, UpdateScore, GetUserItems, GetUserScore, getFlowerState, changeFlowerState, checkFlowerState, updateFlowerStatus}
+const GetItemRealtime = async (user_id) => {
+    try {
+        let data = await axios.get(`${ENDPOINT}/flower/get/item/realtime/${user_id}/`);
+        return data.data.data;
+    }catch (err) {
+        console.error(err);
+    }
+}
+
+export {timeFormat, FetchQuestionData, FetchUserAnswer, UpdateScore, GetUserItems, GetUserScore, getFlowerState, changeFlowerState, checkFlowerState, updateFlowerStatus, GetItemRealtime}

@@ -1,4 +1,4 @@
 
-let ENDPOINT= "http://localhost:3000";
-let SOCKET_ENDPOINT= "http://localhost:3000";
+let ENDPOINT= "http://192.168.9.150:4000";
+let SOCKET_ENDPOINT= "http://192.168.9.150:4000";
 export { ENDPOINT, SOCKET_ENDPOINT };

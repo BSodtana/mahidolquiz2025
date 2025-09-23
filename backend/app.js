@@ -14,7 +14,7 @@ socketHandler.io.attach(http, { cors: { origin: "*" } })
 app.use(
   cors({
     origin: "*",
-    //origin: ["http://localhost:5173", "http://127.0.0.1:5173", "http://10.83.217.233:5173", "http://10.83.218.1:5173"],
+    //origin: ["http://localhost:5173", "http://localhost:4000"],
   })
 );
 const port = process.env.PORT || 3000;

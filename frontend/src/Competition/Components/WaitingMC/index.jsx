@@ -1,19 +1,64 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Card, Divider, Modal } from "react-daisyui"
+import { Button, Card, Divider, Modal, Navbar } from "react-daisyui"
 import * as BsIcon from "react-icons/bs"
-import { FetchQuestionData } from "./helper";
+import { FetchQuestionData , updateItemFlower, GetItemRealtime, getItemData } from "./helper";
 import PropTypes from "prop-types"
+import toast, { Toaster } from "react-hot-toast"
+
+// Flower
+import item3 from '../Answer/items/item3.png';
+import item4 from '../Answer/items/item4.png';
+import item5 from '../Answer/items/item5.png';
+import item6 from '../Answer/items/item6.png';
+import item7 from '../Answer/items/item7.png';
+
+const itemImages = {
+  3: item3,
+  4: item4,
+  5: item5,
+  6: item6,
+  7: item7
+};
+
 
 function WaitingMC({ connection, CURRENT_QUESTION }) {
   const [user, setUser] = useState();
+  const users = JSON.parse(localStorage.getItem("user"))
   const navigate = useNavigate();
   const [question, setQuestion] = useState();
+  const [isUsed, setIsUsed] = useState(false);
+  const [flowerNumber, setFlowerNumber] = useState(0);
+  const [addNumber, setAddNumber] = useState(0);
+  const [reviveNumber, setReviveNumber] = useState(0);
+  const [shieldNumber, setShieldNumber] = useState(0);
+  const [selectedImage, setSelectedImage] = useState(null);
   useEffect(() => {
     if (!localStorage.getItem("user")) return navigate("/");
     if (localStorage.getItem("user"))
       return setUser(JSON.parse(localStorage.getItem("user")));
   }, []);
+
+  const runOnceAndStore = async () => {
+    let item = await GetItemRealtime(users.user_id);
+    setFlowerNumber(item.current_units);
+
+    let add = await getItemData(users.user_id, "ADD");
+    setAddNumber(add.is_used);
+    
+    let revive = await getItemData(users.user_id, "REVIVE");
+    setReviveNumber(revive.is_used);
+
+    let shield = await getItemData(users.user_id, "SHIELD");
+    setShieldNumber(shield.is_used);
+  };
+
+  useEffect(() => {
+    runOnceAndStore();
+    if (flowerNumber > 0) {
+      setSelectedImage(itemImages[flowerNumber]);
+    }
+  }, [flowerNumber]);
 
   useEffect(() => {
     if (CURRENT_QUESTION) {
@@ -26,18 +71,24 @@ function WaitingMC({ connection, CURRENT_QUESTION }) {
     console.log(query)
     setQuestion(query)
   }
-
+  
   // modal Rules
   const [rulesModal, setRulesModal] = useState(false)
 
   if (CURRENT_QUESTION && question)
     return (
       <div className="grid h-screen place-items-center">
-        <div>
+        <div className="grid grid-cols-2 gap-4 w-11/12">
           <div className="text-center m-2">
-            {/* <p className="text-xl">กรุณารอพิธีกร</p> */}
+            <Toaster position="top-center" reverseOrder={false} />
+            <p className="text-xl">กรุณารอพิธีกร</p>
             <p className="text-md"></p>
-            <Card className="shadow-xl">
+            <div className="flex justify-center gap-4 pt-4">
+              <Button color="primary" size="md" onClick={() => { updateItemFlower(user.user_id, "ADD", CURRENT_QUESTION, setIsUsed) }} disabled={isUsed} > Heal ({addNumber}) </Button>
+              <Button color="primary" size="md" onClick={() => { updateItemFlower(user.user_id, "REVIVE", CURRENT_QUESTION, setIsUsed) }} disabled={isUsed} > Revive ({reviveNumber}) </Button>
+              <Button color="primary" size="md" onClick={() => { updateItemFlower(user.user_id, "SHIELD", CURRENT_QUESTION, setIsUsed) }} disabled={isUsed} > Shield ({shieldNumber}) </Button>
+            </div>
+            <Card className="shadow-xl mt-6">
               <Card.Body>
                 <p className="text-3xl">{question.type} {question.level && "ระดับ"} {question.level}</p>
                 <p className="text-3xl">{question.score} คะแนน</p>
@@ -65,12 +116,33 @@ function WaitingMC({ connection, CURRENT_QUESTION }) {
                 </p>
               </Card.Body>
             </Card>
+            <div className="pt-8 text-center">
+              <Button color="info" size="lg" startIcon={<BsIcon.BsQuestion />} onClick={() => { setRulesModal(!rulesModal) }}>คำชี้แจงการใช้ระบบแข่งขัน</Button>
+            </div>
+          </div>
+          <div className="text-center m-2" 
+    style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        height: '400px' // Example height to demonstrate vertical centering
+    }}>
+            <p className="text-xl">Multiplier x {flowerNumber/5} 🔥</p>
+          {selectedImage && (
+            <img
+              src={selectedImage}
+              alt={`Item ${flowerNumber}`}
+              style={{
+                maxWidth: '100%',
+                height: 'auto',
+                display: 'block',
+                margin: '20px auto',
+                width: '500px'}}
+              />
+            )}
           </div>
 
-
-          <div className="pt-8 text-center">
-            <Button color="info" size="lg" startIcon={<BsIcon.BsQuestion />} onClick={() => { setRulesModal(!rulesModal) }}>คำชี้แจงการใช้ระบบแข่งขัน</Button>
-          </div>
           <Modal open={rulesModal} onClickBackdrop={() => { setRulesModal(!rulesModal) }}>
             <Button size="sm" color="ghost" shape="circle" className="absolute right-4 top-4" onClick={() => { setRulesModal(!rulesModal) }}>
               x

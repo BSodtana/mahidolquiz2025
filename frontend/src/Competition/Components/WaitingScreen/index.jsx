@@ -10,19 +10,20 @@ function WaitingScreen({ connection }) {
 
   useEffect(() => {
     if (!localStorage.getItem("user")) return navigate("/");
-    if (localStorage.getItem("user"))
+    if (localStorage.getItem("user")){
       return setUser(JSON.parse(localStorage.getItem("user")));
+    }
+    
   }, []);
 
   // modal Rules
   const [rulesModal, setRulesModal] = useState(false)
-
   return (
     <div className="grid h-screen place-items-center">
       <div>
         <div className="text-center m-2">
           <p className="text-xl">รอคำสั่งจากพิธีกร</p>
-          <p className="text-md">โครงการตอบปัญหามหิดล ประจำปีการศึกษา 2567</p>
+          <p className="text-md">โครงการตอบปัญหามหิดล ประจำปีการศึกษา 2568</p>
 
           <Card className="shadow-xl my-4">
             <Card.Body>

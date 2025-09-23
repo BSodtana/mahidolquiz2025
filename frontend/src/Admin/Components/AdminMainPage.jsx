@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, Card, Divider, Modal } from 'react-daisyui';
 import { SocketConnection } from '../Helpers/AdminMainPage';
-import { FetchAllQuestion } from './helper';
+import { FetchAllQuestion, ResetFlower, ResetItem, ResetStatusQuestion } from './helper';
+import { Toaster } from "react-hot-toast"
+import cheerGif from "./assets/cheer.gif";
 
 function AdminMainPage() {
     const [, gameStatus, questionOwner, loop, emitValue, emitQuestionValue, resetGameState, fetchGameState, emitLoop, emitStart, emitQuestion, currentQuestionSelect] = SocketConnection()
@@ -20,14 +22,15 @@ function AdminMainPage() {
     return (
         <div>
             <p className="text-2xl text-center">MAHIDOL QUIZ GAMEMASTER DESK</p>
+            <Toaster position="top-center" reverseOrder={false} />
             <div className="grid grid-cols-4">
                 <div className="col-span-1">
                     <Card>
                         <Card.Body>
                             <Alert innerClassName="text-xs">สถานะปัจจุบัน: {gameStatus}</Alert>
                             <Card.Title>เลือกสถานะเกม</Card.Title>
-                            <Button color="primary" size="sm" variant="outline" onClick={() => { emitValue({ role: "admin", CURRENT_GAME_STATUS: "WELCOME" }) }}>ปิดแผ่นป้าย</Button>
-                            <Button color="primary" size="sm" variant="outline" onClick={() => { emitValue({ role: "admin", CURRENT_GAME_STATUS: "SELECT_QUESTION" }) }}>เลือกแผ่นป้าย</Button>
+                            <Button color="primary" size="sm" variant="outline" onClick={() => { emitValue({ role: "admin", CURRENT_GAME_STATUS: "WELCOME" }) }}>ปิดแผ่นป้าย (Default)</Button>
+                            {/*<Button color="primary" size="sm" variant="outline" onClick={() => { emitValue({ role: "admin", CURRENT_GAME_STATUS: "SELECT_QUESTION" }) }}>เลือกแผ่นป้าย</Button> */}
                             <Button color="primary" size="sm" variant="outline" onClick={() => { emitValue({ role: "admin", CURRENT_GAME_STATUS: "AWAIT_MC" }) }}>รอปล่อยคำถาม</Button>
                             <Button color="error" size="sm" variant="outline" onClick={() => { emitValue({ role: "admin", CURRENT_GAME_STATUS: "START_QUESTION" }); emitStart(); }}>ปล่อยคำถาม</Button>
                             <Button color="warning" size="sm" variant="outline" onClick={() => { emitValue({ role: "admin", CURRENT_GAME_STATUS: "AWAIT_SCORE" }) }}>รอคะแนน</Button>
@@ -41,10 +44,10 @@ function AdminMainPage() {
                             <Button color="warning" size="sm" variant="outline" onClick={() => { resetGameState() }}>รีเซ็ตสถานะเกม</Button>
                             <Button color="warning" size="sm" variant="outline" onClick={() => { setOpen(true) }}>ยิงคำถาม</Button>
                             <Button color="error" size="sm" variant="outline" onClick={() => { emitValue({ role: "admin", CURRENT_GAME_STATUS: "REVIEW_QUESTION" }); }}>โชว์คำถามเต็ม (ไม่จับเวลา)</Button>
-
                         </Card.Body>
                     </Card>
                 </div>
+                {/*
                 <div className="col-span-1">
                     <Card>
                         <Card.Body>
@@ -71,7 +74,35 @@ function AdminMainPage() {
                         </Card.Body>
                     </Card>
                 </div>
+                {*/}
                 <div className="col-span-1">
+                    <Card>
+                        <Card.Body>
+                            <Alert innerClassName="text-xs">คำสั่งสร้างพิเศษ</Alert>
+                            <Card.Title>คำสั่ง</Card.Title>
+                            <Button color="error" size="sm" variant="outline" onClick={() => { ResetFlower() }}>Reset Flower</Button>
+                            <Button color="error" size="sm" variant="outline" onClick={() => { ResetStatusQuestion() }}>Reset Status</Button>
+                            <Button color="error" size="sm" variant="outline" onClick={() => { ResetItem() }}>Reset Heal</Button>
+                            <img src={cheerGif} alt="A cheering animation" />
+                        </Card.Body>
+                    </Card>
+                </div>
+                <div className="col-span-2">
+                    <Card>
+                        <Card.Body>
+                            <Alert innerClassName="text-xs">แนะนำปุ่มกด</Alert>
+                            <Card.Title>คู่มือการใช้งาน</Card.Title>
+                            <p className="text-s">1. ปิดแผ่นป้าย : เมื่อต้องการเข้าสู่หน้าหลักปกติ ไม่เข้าเกม</p>
+                            <p className="text-s">2. รอปล่อยคำถาม : เลือกคำถามแล้วรอเข้าข้อคำถาม (ใช้ไอเทม)</p>
+                            <p className="text-s">3. ปล่อยคำถาม : เริ่มคำถามในข้อนั้นๆ</p>
+                            <p className="text-s">( Warning : ควรปล่อยเวลาหมดก่อนกดปุ่มอื่น )</p>
+                            <p className="text-s">4. รอคะแนน : เพื่อให้กรรมการให้คะแนนในข้อนั้นๆ</p>
+                            <p className="text-s">( Reminder : เกมจะโยนเข้ารอคะแนนอัตโนมัติหลังเวลาหมด )</p>
+                            <p className="text-s">5. ผลการเล่น : แสดงคะแนนในข้อนั้นๆ หลังจากกรรมการให้คะแนน</p>
+                            <p className="text-s">6. Scoreboard : แสดงสถานะคะแนนทุกทีมบนหน้าจอ Streamer</p>
+                            <p className="text-s">7. กติกาการแข่ง : แสดงกติกาการเล่นของเกม</p>
+                        </Card.Body>
+                    </Card>
                 </div>
             </div>
 
