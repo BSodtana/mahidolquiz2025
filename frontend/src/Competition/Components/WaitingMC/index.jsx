@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button, Card, Divider, Modal, Navbar } from "react-daisyui"
 import * as BsIcon from "react-icons/bs"
 import { FetchQuestionData , updateItemFlower, GetItemRealtime, getItemData } from "./helper";
+import addIcon from "../../../assets/add_icon.png";
+import reviveIcon from "../../../assets/revive_icon.png";
+import shieldIcon from "../../../assets/shield_icon.png";
 import PropTypes from "prop-types"
 import toast, { Toaster } from "react-hot-toast"
 
@@ -83,10 +86,37 @@ function WaitingMC({ connection, CURRENT_QUESTION }) {
             <Toaster position="top-center" reverseOrder={false} />
             <p className="text-xl">กรุณารอพิธีกร</p>
             <p className="text-md"></p>
-            <div className="flex justify-center gap-4 pt-4">
-              <Button color="primary" size="md" onClick={() => { updateItemFlower(user.user_id, "ADD", CURRENT_QUESTION, setIsUsed) }} disabled={isUsed} > Heal ({addNumber}) </Button>
-              <Button color="primary" size="md" onClick={() => { updateItemFlower(user.user_id, "REVIVE", CURRENT_QUESTION, setIsUsed) }} disabled={isUsed} > Revive ({reviveNumber}) </Button>
-              <Button color="primary" size="md" onClick={() => { updateItemFlower(user.user_id, "SHIELD", CURRENT_QUESTION, setIsUsed) }} disabled={isUsed} > Shield ({shieldNumber}) </Button>
+            <div className="flex justify-center gap-6 pt-4">
+              <button
+                type="button"
+                onClick={() => { updateItemFlower(user.user_id, "ADD", CURRENT_QUESTION, setIsUsed) }}
+                disabled={isUsed}
+                aria-label={"Use Heal (" + addNumber + ")"}
+                className="flex flex-col items-center gap-2 rounded-full border-none bg-transparent p-0 text-slate-700 transition-transform duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <img src={addIcon} alt="" className="h-24 w-24 select-none object-contain" draggable="false" />
+                <span className="text-lg font-semibold">({addNumber})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { updateItemFlower(user.user_id, "REVIVE", CURRENT_QUESTION, setIsUsed) }}
+                disabled={isUsed}
+                aria-label={"Use Revive (" + reviveNumber + ")"}
+                className="flex flex-col items-center gap-2 rounded-full border-none bg-transparent p-0 text-slate-700 transition-transform duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <img src={reviveIcon} alt="" className="h-24 w-24 select-none object-contain" draggable="false" />
+                <span className="text-lg font-semibold">({reviveNumber})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { updateItemFlower(user.user_id, "SHIELD", CURRENT_QUESTION, setIsUsed) }}
+                disabled={isUsed}
+                aria-label={"Use Shield (" + shieldNumber + ")"}
+                className="flex flex-col items-center gap-2 rounded-full border-none bg-transparent p-0 text-slate-700 transition-transform duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <img src={shieldIcon} alt="" className="h-24 w-24 select-none object-contain" draggable="false" />
+                <span className="text-lg font-semibold">({shieldNumber})</span>
+              </button>
             </div>
             <Card className="shadow-xl mt-6">
               <Card.Body>
