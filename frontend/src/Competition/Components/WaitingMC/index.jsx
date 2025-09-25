@@ -95,7 +95,7 @@ function WaitingMC({ connection, CURRENT_QUESTION }) {
                 className="flex flex-col items-center gap-2 rounded-full border-none bg-transparent p-0 text-slate-700 transition-transform duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <img src={addIcon} alt="" className="h-24 w-24 select-none object-contain" draggable="false" />
-                <span className="text-lg font-semibold">({addNumber})</span>
+                <span className="text-lg font-semibold">Add ({addNumber})</span>
               </button>
               <button
                 type="button"
@@ -105,7 +105,7 @@ function WaitingMC({ connection, CURRENT_QUESTION }) {
                 className="flex flex-col items-center gap-2 rounded-full border-none bg-transparent p-0 text-slate-700 transition-transform duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <img src={reviveIcon} alt="" className="h-24 w-24 select-none object-contain" draggable="false" />
-                <span className="text-lg font-semibold">({reviveNumber})</span>
+                <span className="text-lg font-semibold">Revive ({reviveNumber})</span>
               </button>
               <button
                 type="button"
@@ -115,7 +115,7 @@ function WaitingMC({ connection, CURRENT_QUESTION }) {
                 className="flex flex-col items-center gap-2 rounded-full border-none bg-transparent p-0 text-slate-700 transition-transform duration-150 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <img src={shieldIcon} alt="" className="h-24 w-24 select-none object-contain" draggable="false" />
-                <span className="text-lg font-semibold">({shieldNumber})</span>
+                <span className="text-lg font-semibold">Shield ({shieldNumber})</span>
               </button>
             </div>
             <Card className="shadow-xl mt-6">
