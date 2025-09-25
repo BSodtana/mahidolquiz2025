@@ -158,7 +158,6 @@ function WaitingMC({ connection, CURRENT_QUESTION }) {
         alignItems: 'center',
         height: '400px' // Example height to demonstrate vertical centering
     }}>
-            <p className="text-xl">Multiplier x {flowerNumber/5} 🔥</p>
           {selectedImage && (
             <img
               src={selectedImage}
@@ -168,9 +167,9 @@ function WaitingMC({ connection, CURRENT_QUESTION }) {
                 height: 'auto',
                 display: 'block',
                 margin: '20px auto',
-                width: '500px'}}
+                width: '550px'}}
               />
-            )}
+            )}<p className="text-2xl">Multiplier x {flowerNumber/5} 🔥</p>
           </div>
 
           <Modal open={rulesModal} onClickBackdrop={() => { setRulesModal(!rulesModal) }}>
