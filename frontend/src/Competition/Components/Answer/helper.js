@@ -30,7 +30,7 @@ const handleSubmission = async (user_id, current_question, textAnswer, setIsSave
             if(time >= (time_limit / 2)){
                 // Fix EarlySend
                 await EarlySend(user_id, 1, current_question);
-                toast.success("บันทึกคำตอบเรียบร้อย (ได้รับ +1 ดอก หากตอบถูกต้อง)"); 
+                toast.success("บันทึกคำตอบเรียบร้อย (ได้รับกลีบดอกไม้ +1  หากตอบถูกต้อง)"); 
             }else{
                 await EarlySend(user_id, 0, current_question);
                 toast.success("บันทึกคำตอบเรียบร้อย");
