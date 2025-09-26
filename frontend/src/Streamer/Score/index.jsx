@@ -2,7 +2,70 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ScoreRanking } from "./helper";
 import background from "../../../src/assets/background.png";
 import logo from "../../../src/assets/logo_mquiz2025.png";
+import item3 from "../../Competition/Components/Answer/items/item3.png";
+import item4 from "../../Competition/Components/Answer/items/item4.png";
+import item5 from "../../Competition/Components/Answer/items/item5.png";
+import item6 from "../../Competition/Components/Answer/items/item6.png";
+import item7 from "../../Competition/Components/Answer/items/item7.png";
+import addIcon from "../../../src/assets/add_icon.png";
+import reviveIcon from "../../../src/assets/revive_icon.png";
+import shieldIcon from "../../../src/assets/shield_icon.png";
 import { gsap } from "gsap";
+
+const FLOWER_LEVELS = {
+  3: { src: item3, petals: 3, leaves: 0 },
+  4: { src: item4, petals: 3, leaves: 1 },
+  5: { src: item5, petals: 4, leaves: 1 },
+  6: { src: item6, petals: 4, leaves: 2 },
+  7: { src: item7, petals: 5, leaves: 2 },
+};
+
+const DEFAULT_FLOWER_LEVEL = { src: item3, petals: 3, leaves: 0 };
+
+const MAX_ITEM_COUNTS = {
+  ADD: 2,
+  REVIVE: 1,
+  SHIELD: 1,
+};
+
+const ITEM_DETAILS = {
+  ADD: { icon: addIcon, label: "Add" },
+  REVIVE: { icon: reviveIcon, label: "Revive" },
+  SHIELD: { icon: shieldIcon, label: "Shield" },
+};
+
+const resolveFlowerVisual = (rawUnits) => {
+  const numericUnits = Number(rawUnits);
+  if (!Number.isFinite(numericUnits) || numericUnits <= 0) {
+    return { ...DEFAULT_FLOWER_LEVEL, units: 0, hasFlower: false };
+  }
+
+  const clampedUnits = Math.min(7, Math.max(3, Math.round(numericUnits)));
+  const level = FLOWER_LEVELS[clampedUnits] ?? DEFAULT_FLOWER_LEVEL;
+  return { ...level, units: numericUnits, hasFlower: true };
+};
+
+const computeItemsLeft = (rawItems) => {
+  const usedCounts = { ADD: 0, REVIVE: 0, SHIELD: 0 };
+
+  (rawItems ?? "")
+    .split(",")
+    .map((item) => item && item.trim().toUpperCase())
+    .filter(Boolean)
+    .forEach((item) => {
+      if (Object.prototype.hasOwnProperty.call(usedCounts, item)) {
+        usedCounts[item] += 1;
+      }
+    });
+
+  const remaining = {};
+  Object.entries(MAX_ITEM_COUNTS).forEach(([item, maxCount]) => {
+    const used = usedCounts[item] ?? 0;
+    remaining[item] = Math.max(0, maxCount - used);
+  });
+
+  return remaining;
+};
 
 function StreamerScore() {
   const [score, setScore] = useState(null);
@@ -122,11 +185,15 @@ function StreamerScore() {
         backgroundPosition: "center",
       }}
     >
-      <img src={logo} alt="Mahidol Quiz" className="absolute top-6 left-6 w-28 drop-shadow-xl" />
-      <div className="w-10/12 max-w-4xl bg-white bg-opacity-95 backdrop-blur rounded-3xl shadow-2xl p-8 animate__animated animate__fadeInUp">
+      <img
+        src={logo}
+        alt="Mahidol Quiz"
+        className="absolute top-6 left-6 w-56 md:w-64 drop-shadow-xl"
+      />
+      <div className="w-11/12 max-w-4xl bg-white bg-opacity-95 backdrop-blur rounded-3xl shadow-2xl p-6 animate__animated animate__fadeInUp">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-3xl font-bold text-gray-900">Scoreboard</h2>
-          <span className="text-lg text-gray-600">คะแนนรวม พร้อมดอกไม้คงเหลือและไอเท็มที่ใช้</span>
+          <span className="text-lg text-gray-600">คะแนนรวม พร้อมดอกไม้คงเหลือและไอเท็มที่เหลือ</span>
         </div>
         <div className="flex flex-col gap-4">
           {score &&
@@ -144,42 +211,62 @@ function StreamerScore() {
                 accentClass = "bg-orange-200 text-gray-900";
               }
 
-              const flowerUnits = data.flower_units ?? 0;
-              const itemIconMap = {
-                ADD: "➕",
-                REVIVE: "✨",
-                SHIELD: "🛡️",
-              };
-
-              const itemsUsed = (data.items_used ?? "")
-                .split(",")
-                .map((item) => item && item.trim())
-                .filter(Boolean);
+              const flowerVisual = resolveFlowerVisual(data.flower_units);
+              const itemsLeft = computeItemsLeft(data.items_used);
+              const itemsLeftList = Object.entries(itemsLeft).filter(([, count]) => count > 0);
 
               return (
                 <div
                   key={data.user_id ?? index}
-                  className={`grid grid-cols-5 gap-4 items-center rounded-2xl px-6 py-4 shadow-lg ${accentClass}`}
+                  className={`grid grid-cols-[0.5fr_1.5fr_auto_minmax(0,1.8fr)_auto] gap-5 items-center rounded-2xl px-6 py-3 shadow-lg ${accentClass}`}
                   ref={registerRowRef(index)}
                 >
-                  <div className="text-2xl font-bold"># {index + 1}</div>
-                  <div className="text-2xl font-semibold truncate">{data.owner_name}</div>
-                  <div className="text-xl font-semibold flex items-center gap-2">
-                    <span role="img" aria-label="flower" className="text-3xl">
-                      🌸
-                    </span>
-                    <span>{flowerUnits}</span>
+                  <div className="text-lg font-bold"># {index + 1}</div>
+                  <div className="text-2xl font-semibold truncate min-w-0">{data.owner_name}</div>
+                  <div className="flex items-center gap-3">
+                    {flowerVisual.hasFlower ? (
+                      <>
+                        <img
+                          src={flowerVisual.src}
+                          alt={`${flowerVisual.units} flower units`}
+                          className="h-20 w-20 object-contain select-none"
+                          draggable="false"
+                        />
+                        <span className="text-lg font-bold text-gray-900">
+                          {flowerVisual.units}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-sm text-gray-500">ไม่มีดอกไม้</span>
+                    )}
                   </div>
-                  <div className="text-lg font-medium flex items-center gap-2">
-                    {itemsUsed.length
-                      ? itemsUsed.map((item) => (
-                          <span key={item} title={item} className="text-2xl">
-                            {itemIconMap[item] ?? item}
-                          </span>
-                        ))
-                      : "-"}
+                  <div className="text-base font-medium flex flex-wrap items-center gap-2">
+                    {itemsLeftList.length ? (
+                      itemsLeftList.map(([item, count]) => (
+                        <span
+                          key={item}
+                          className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-1 text-sm font-semibold text-gray-700 shadow-sm"
+                        >
+                          {ITEM_DETAILS[item]?.icon ? (
+                            <img
+                              src={ITEM_DETAILS[item].icon}
+                              alt={`${ITEM_DETAILS[item].label} icon`}
+                              className="h-10 w-10 select-none"
+                              draggable="false"
+                            />
+                          ) : (
+                            <span className="text-base" title={item}>
+                              {item}
+                            </span>
+                          )}
+                          <span>x{count}</span>
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">ไม่มีไอเท็ม</span>
+                    )}
                   </div>
-                  <div ref={registerScoreRef(index)} className="text-4xl font-black text-right">
+                  <div ref={registerScoreRef(index)} className="text-3xl font-black text-right">
                     {data.score}
                   </div>
                 </div>

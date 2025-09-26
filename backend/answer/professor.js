@@ -80,7 +80,7 @@ router.get("/summary", async (_req, res) => {
       WHERE COALESCE(fs.current_units, 0) > 0
       ORDER BY score DESC`
     );
-
+    console.log(score);
     res.status(200).json({ status: "success", score });
   } catch (err) {
     res.status(500).json({ status: "error", detail: err });

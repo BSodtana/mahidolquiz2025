@@ -24,32 +24,50 @@ function StreamerCountdown({ TIME_LEFT, CURRENT_QUESTION }) {
 
     useEffect(() => {
         if (typeof TIME_LEFT !== "number") {
+            previousTimeRef.current = undefined;
+            setAnimatedTime(0);
             return;
         }
 
-        const startValue = typeof previousTimeRef.current === "number" ? previousTimeRef.current : TIME_LEFT;
-        setAnimatedTime(Math.max(0, Math.round(startValue)));
+        const now = TIME_LEFT;
+        const previous = typeof previousTimeRef.current === "number" ? previousTimeRef.current : now;
+        const withinCriticalWindow = now <= 10;
+        let tween;
 
-        const counter = { value: startValue };
-        const tween = gsap.to(counter, {
-            value: TIME_LEFT,
-            duration: 0.5,
-            ease: "power1.out",
-            onUpdate: () => {
-                setAnimatedTime(Math.max(0, Math.round(counter.value)));
-            },
-        });
+        if (withinCriticalWindow) {
+            setAnimatedTime(Math.max(0, Math.round(previous)));
 
-        if (clockRef.current) {
-            gsap.fromTo(
-                clockRef.current,
-                { scale: 1.25 },
-                { scale: 1, duration: 0.3, ease: "back.out(2)" }
-            );
+            const counter = { value: previous };
+            tween = gsap.to(counter, {
+                value: now,
+                duration: 0.5,
+                ease: "power1.out",
+                onUpdate: () => {
+                    setAnimatedTime(Math.max(0, Math.round(counter.value)));
+                },
+            });
+
+            if (clockRef.current) {
+                gsap.killTweensOf(clockRef.current);
+                gsap.fromTo(
+                    clockRef.current,
+                    { scale: 1.25 },
+                    { scale: 1, duration: 0.3, ease: "back.out(2)" }
+                );
+            }
+        } else {
+            setAnimatedTime(Math.max(0, Math.round(now)));
+            if (clockRef.current) {
+                gsap.killTweensOf(clockRef.current);
+                gsap.set(clockRef.current, { scale: 1 });
+            }
         }
 
-        previousTimeRef.current = TIME_LEFT;
-        return () => tween.kill();
+        previousTimeRef.current = now;
+
+        return () => {
+            tween?.kill();
+        };
     }, [TIME_LEFT]);
 
 
@@ -84,7 +102,11 @@ function StreamerCountdown({ TIME_LEFT, CURRENT_QUESTION }) {
             backgroundSize: 'cover',
             backgroundPosition: 'center'
         }}>
-        <img src={logo} alt="Mahidol Quiz" className="absolute top-6 left-6 w-28 drop-shadow-xl" />
+        <img
+            src={logo}
+            alt="Mahidol Quiz"
+            className="absolute top-6 left-6 w-56 md:w-64 drop-shadow-xl"
+        />
         {/* Header Block - No Change */}
         <div className="grid grid-cols-3 p-5 rounded-lg bg-white shadow-2xl bg-opacity-100 text-center text-3xl w-11/12 animate__animated animate__fadeInUp">
             <div ref={clockRef} className={`flex justify-around transition-colors duration-200 ${critical ? 'text-red-600' : ''}`}>

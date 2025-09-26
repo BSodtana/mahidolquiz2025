@@ -1,121 +1,30 @@
 import { PropTypes } from "prop-types";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Badge, Divider } from "react-daisyui";
 import { FetchAnswer, FetchScore, FetchQuestionData, FetchFlowerStates } from "./helper";
 import * as BsIcon from "react-icons/bs";
 import { ENDPOINT } from "../../config";
 import background from "../../../src/assets/background.png";
 import logo from "../../../src/assets/logo_mquiz2025.png";
-import AnswerFlower from "../../Competition/Components/Answer/items/AnswerFlower";
-import { gsap } from "gsap";
 
-const FLOWER_VARIANTS = ["blossom", "sunrise", "berry"];
+const resolveFlowerInfo = (rawUnits) => {
+  const numericUnits = Number(rawUnits);
+  if (!Number.isFinite(numericUnits) || numericUnits <= 0) {
+    return { units: 0, multiplier: 0, hasFlower: false };
+  }
 
-const useReducedMotion = () => {
-  return useMemo(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return false;
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  }, []);
+  return {
+    units: numericUnits,
+    multiplier: numericUnits / 5,
+    hasFlower: true,
+  };
 };
 
-const AnimatedResultFlower = ({ units = 0, outcome = "pending", variant = "blossom" }) => {
-  const wrapperRef = useRef(null);
-  const dropletRefs = useRef([]);
-  const tlRef = useRef(null);
-  const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    const droplets = dropletRefs.current.filter(Boolean);
-    if (!wrapper) return () => {};
-    gsap.set(wrapper, { scale: 1, rotation: 0 });
-    droplets.forEach((drop) => gsap.set(drop, { autoAlpha: 0, y: 0 }));
-    return () => {
-      tlRef.current?.kill();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (reducedMotion) return;
-    const wrapper = wrapperRef.current;
-    const droplets = dropletRefs.current.filter(Boolean);
-    if (!wrapper) return;
-
-    tlRef.current?.kill();
-
-    if (outcome === "correct") {
-      const tl = gsap.timeline();
-      tl.to(wrapper, {
-        scale: 1.12,
-        duration: 0.35,
-        ease: "back.out(1.7)",
-      })
-        .to(wrapper, {
-          scale: 1,
-          duration: 0.4,
-          ease: "sine.out",
-        });
-      tl.fromTo(
-        droplets,
-        { autoAlpha: 0, y: 0 },
-        {
-          autoAlpha: 0.8,
-          y: -28,
-          duration: 0.55,
-          ease: "power1.out",
-          stagger: 0.08,
-        },
-        "<0.1"
-      ).to(droplets, { autoAlpha: 0, duration: 0.3, ease: "sine.in" }, "-=0.2");
-      tlRef.current = tl;
-    } else if (outcome === "incorrect") {
-      const tl = gsap.timeline();
-      tl.to(wrapper, {
-        scale: 0.9,
-        rotation: -8,
-        duration: 0.35,
-        ease: "power2.inOut",
-      }).to(wrapper, {
-        scale: 1,
-        rotation: 0,
-        duration: 0.45,
-        ease: "power2.out",
-      });
-      tlRef.current = tl;
-    } else {
-      gsap.set(wrapper, { scale: 1, rotation: 0 });
-      droplets.forEach((drop) => gsap.set(drop, { autoAlpha: 0, y: 0 }));
-    }
-  }, [outcome, reducedMotion]);
-
-  const sanitizedUnits = Number.isFinite(units) ? units : 0;
-  const dropletCount = 3;
-  dropletRefs.current = dropletRefs.current.slice(0, dropletCount);
-
-  return (
-    <div className="relative flex flex-col items-center" aria-hidden="true">
-      <div ref={wrapperRef} className="relative flex items-center justify-center">
-        <div className="absolute -top-6 left-1/2 flex -translate-x-1/2 gap-1" aria-hidden="true">
-          {Array.from({ length: dropletCount }).map((_, index) => (
-            <span
-              key={index}
-              ref={(el) => (dropletRefs.current[index] = el)}
-              className="block h-2 w-2 rounded-full bg-cyan-200/80"
-            />
-          ))}
-        </div>
-        <AnswerFlower
-          size="sm"
-          interactive={false}
-          variant={variant}
-          pollenCount={4}
-          ariaLabel={`ดอกไม้ ${sanitizedUnits} ดอก`}
-          tabIndex={-1}
-        />
-      </div>
-      <span className="mt-2 text-sm font-semibold text-slate-600">{sanitizedUnits} ดอก</span>
-    </div>
-  );
+const formatMultiplier = (value) => {
+  if (!Number.isFinite(value) || value <= 0) {
+    return "0";
+  }
+  return Number.isInteger(value) ? `${value}` : value.toFixed(1).replace(/\.0$/, "");
 };
 
 function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
@@ -143,8 +52,12 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
         if (!isActive) return;
         const mapped = {};
         (states ?? []).forEach((entry) => {
-          if (!entry || !entry.team_id) return;
-          mapped[entry.team_id] = entry.current_units ?? 0;
+          if (!entry || entry.team_id == null) {
+            return;
+          }
+          const parsedUnits = Number(entry.current_units);
+          const teamKey = String(entry.team_id);
+          mapped[teamKey] = Number.isFinite(parsedUnits) ? parsedUnits : 0;
         });
         setFlowerStates(mapped);
       } catch (error) {
@@ -164,9 +77,8 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
   };
 
   const fetchScore = async (q_id) => {
-    let score = await FetchScore(q_id)
-    console.log(score)
-    setScore(score)
+    const fetchedScore = await FetchScore(q_id);
+    setScore(fetchedScore);
   }
 
   const filterScore = (user_id) => {
@@ -194,7 +106,6 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
           console.error("Error fetching question data:", error);
       }
   };
-  console.log(question)
 
   return (
     <div className="relative flex flex-col items-center justify-center h-screen"
@@ -203,7 +114,11 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
             }}>
-      <img src={logo} alt="Mahidol Quiz" className="absolute top-6 left-6 w-28 drop-shadow-xl" />
+      <img
+        src={logo}
+        alt="Mahidol Quiz"
+        className="absolute top-6 left-6 w-56 md:w-64 drop-shadow-xl"
+      />
       <div className="grid rounded-lg bg-opacity-90 bg-white text-gray-700 shadow-2xl text-center text-3xl w-11/12 animate__animated animate__fadeInUp p-5 mb-5" style={{ animationDelay: "500ms" }}>
         
         {CURRENT_STATUS === "SHOW_SUMMARY" ? 
@@ -221,10 +136,10 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
 
 
          {/* {
-            (score?.question_data[0].correct_answer_description) && (
+            (score?.question_data?.[0]?.correct_answer_description) && (
               <p className="text-xl animate__animated animate__fadeInUp">
                 <Divider className="animate__animated animate__fadeInUp"><strong>คำอธิบาย</strong></Divider>
-                {score && score?.question_data[0].correct_answer_description?.split("<br/>").map((i) => {
+                {score?.question_data?.[0]?.correct_answer_description?.split("<br/>").map((i) => {
                   return (<><span>{i}</span> <br /></>)
                 })}
               </p>
@@ -232,7 +147,9 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
           } */}
 
           <div className="animate__animated animate__fadeInUp flex justify-center">
-            {score?.question_data[0].correct_answer_photo && <img className="h-80" src={`${ENDPOINT}/static/${score?.question_data[0].correct_answer_photo}`} />}
+            {score?.question_data?.[0]?.correct_answer_photo && (
+              <img className="h-80" src={`${ENDPOINT}/static/${score?.question_data?.[0]?.correct_answer_photo}`} />
+            )}
           </div>
         </> : "คำตอบของผู้เข้าแข่งขัน"}
       </div>
@@ -249,11 +166,13 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
             const gradient = pastelPalettes[index % pastelPalettes.length];
             const scoreValue = filterScore(data.user_id);
             const hasPositiveScore = Number(scoreValue) > 0;
-            const units = flowerStates?.[data.user_id] ?? 0;
-            const variant = FLOWER_VARIANTS[Math.abs(units) % FLOWER_VARIANTS.length];
+            const teamKey = data?.user_id != null ? String(data.user_id) : undefined;
+            const units = teamKey ? flowerStates?.[teamKey] ?? 0 : 0;
+            const flowerInfo = resolveFlowerInfo(units);
             const outcome = CURRENT_STATUS === "SHOW_SUMMARY"
               ? (hasPositiveScore ? "correct" : "incorrect")
               : "pending";
+            const multiplierText = formatMultiplier(flowerInfo.multiplier);
 
             return (
               <div
@@ -276,7 +195,30 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
                         </Badge>
                       ) : null}
                     </div>
-                    <AnimatedResultFlower units={units} outcome={outcome} variant={variant} />
+                    <div className="flex flex-col items-center gap-2 text-slate-700 shrink-0">
+                      {flowerInfo.hasFlower ? (
+                        <>
+                          <BsIcon.BsFlower1
+                            className={`text-5xl ${
+                              outcome === "correct"
+                                ? "text-emerald-600"
+                                : outcome === "incorrect"
+                                ? "text-rose-600"
+                                : "text-indigo-500"
+                            }`}
+                            aria-hidden="true"
+                          />
+                          <span className="text-lg font-semibold text-gray-900">
+                            {flowerInfo.units}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {`Multiplier x ${multiplierText}`}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-sm text-gray-500">ไม่มีดอกไม้</span>
+                      )}
+                    </div>
                   </div>
                   <div className="mt-4 flex-1 overflow-y-auto rounded-2xl bg-white/55 p-4 text-lg leading-relaxed shadow-inner shadow-emerald-100/40">
                     {data.answer || <span className="italic text-gray-500">ยังไม่มีคำตอบ</span>}
@@ -304,7 +246,7 @@ function ShowAnswer({ CURRENT_QUESTION, QUESTION_OWNER, CURRENT_STATUS}) {
 
 ShowAnswer.propTypes = {
   CURRENT_QUESTION: PropTypes.string.isRequired,
-  QUESTION_OWNER: PropTypes.string.isRequired,
+  QUESTION_OWNER: PropTypes.string,
   CURRENT_STATUS: PropTypes.string.isRequired
 }
 
